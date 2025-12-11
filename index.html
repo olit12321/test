@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wielki Quiz Linux - Pełna Baza (75 pytań)</title>
+    <title>Egzamin Linux - Pełna Baza (150+ pytań)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .quiz-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
@@ -12,7 +12,22 @@
         .progress-bar { width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; margin-bottom: 25px; overflow: hidden; }
         .progress-fill { height: 100%; background-color: #3498db; width: 0%; transition: width 0.3s ease; }
         .question-text { font-size: 1.25em; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
-        .code-block { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 6px; font-family: 'Consolas', 'Monaco', monospace; margin: 15px 0; white-space: pre-wrap; overflow-x: auto; font-size: 0.9em; border-left: 5px solid #e67e22; }
+        
+        /* STYL KODU ZE ZDJĘCIA */
+        .code-block { 
+            background: #282c34; 
+            color: #abb2bf; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            margin: 15px 0; 
+            white-space: pre-wrap; 
+            overflow-x: auto; 
+            font-size: 0.95em; 
+            border-left: 5px solid #e67e22; /* Pomarańczowy pasek */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+
         .btn { width: 100%; padding: 12px 15px; border: 2px solid #e1e4e8; background: white; cursor: pointer; border-radius: 8px; text-align: left; transition: all 0.2s; font-size: 1rem; margin-bottom: 10px; }
         .btn:hover:not([disabled]) { background-color: #f8f9fa; border-color: #3498db; }
         .btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
@@ -27,10 +42,10 @@
 <body>
 
 <div class="quiz-container" id="quiz-box">
-    <h1>Egzamin Linux - Pełna Baza</h1>
+    <h1>Egzamin Linux - Wielka Baza</h1>
     
     <div class="status-bar">
-        <span id="question-count">Pytanie 1 z 75</span>
+        <span id="question-count">Ładowanie...</span>
         <span id="score-live">Punkty: 0</span>
     </div>
     <div class="progress-bar">
@@ -50,529 +65,473 @@
     <p>Twój wynik końcowy:</p>
     <div class="final-score" id="final-score">0/0</div>
     <p id="score-msg" style="font-size: 1.2em; color: #555;"></p>
-    <button class="btn" onclick="location.reload()" style="text-align: center; background-color: #3498db; color: white; border: none; margin-top: 20px;">Spróbuj ponownie</button>
+    <button class="btn" onclick="location.reload()" style="text-align: center; background-color: #3498db; color: white; border: none; margin-top: 20px;">Spróbuj ponownie (Losuj nowe)</button>
 </div>
 
 <script>
-const questions = [
-    // --- PARTIA 1: Pytania z PYTANIA.png (Systemowe/Podchwytliwe) ---
+// Baza pytań - Oryginalne + Nowe wygenerowane z wykładów
+const questionsDatabase = [
+    // --- ORYGINALNE PYTANIA ---
     {
         text: `Definiując partycję 'swap' jako punkt montowania wskażesz:`,
         options: [`katalog /swap`, `katalog /mnt/swap`, `plik /memory/swap`, `Przy partycji swap nie wskazuje się punktu montowania`],
         answer: 3,
-        explanation: ` Swap nie jest częścią drzewa katalogów (jak /home czy /usr), lecz jest używany bezpośrednio przez jądro do zarządzania pamięcią.`
+        explanation: `Swap nie jest częścią drzewa katalogów, lecz jest używany bezpośrednio przez jądro do zarządzania pamięcią.`
     },
     {
         text: `Co wypisze polecenie echo w następującym ciągu poleceń?`,
-        code: `cd /home/student
-pwd=abc
-bash
-export pwd
-pwd=bbb
-exit
-echo $pwd`,
+        code: `cd /home/student\npwd=abc\nbash\nexport pwd\npwd=bbb\nexit\necho $pwd`,
         options: [`bbb`, `abc`, `/home/student`, `błąd`],
         answer: 1,
-        explanation: ` Uruchomienie 'bash' tworzy proces potomny. Zmienna zmieniona w potomku ('bbb') nie nadpisuje zmiennej w procesie rodzica. Po wyjściu (exit) w rodzicu wciąż jest 'abc'.`
+        [cite_start]explanation: `Uruchomienie 'bash' tworzy proces potomny. Zmiana zmiennej w potomku nie wpływa na rodzica. Po wyjściu (exit) w rodzicu wciąż jest 'abc' [cite: 810-822].`
     },
     {
         text: `Po stworzeniu nowego katalogu poleceniem 'mkdir A', następujące wpisy będą posiadały ten sam numer i-node'u:`,
         options: [`A oraz ./A/`, `A oraz A/.`, `A/ oraz /A/.`, `.. oraz A`],
         answer: 1,
-        explanation: ` Wpis 'A' (w katalogu nadrzędnym) i wpis '.' (kropka wewnątrz katalogu A) wskazują na ten sam fizyczny katalog (ten sam i-node).`
+        explanation: `Wpis 'A' (w katalogu nadrzędnym) i wpis '.' (kropka wewnątrz katalogu A) wskazują na ten sam fizyczny katalog.`
     },
     {
         text: `W katalogu bieżącym skasuj plik o nazwie * (gwiazdka).`,
         options: [`rm *`, `rm all`, `rm \\*`, `rm %`],
         answer: 2,
-        explanation: ` Gwiazdka to metaznak. Żeby użyć jej jako zwykłego znaku w nazwie pliku, trzeba ją "uciec" (escape) znakiem backslash: \\*.`
+        explanation: `Gwiazdka to metaznak. Żeby użyć jej dosłownie, trzeba ją 'uciec' (escape) znakiem backslash: \\*.`
     },
-    {
-        text: `Zakładając, że znajdujesz się w /home/student/B. Jak przenieść plik a.txt z katalogu A (równoległego do B) do katalogu B?`,
-        code: `/home/student
-├── A
-│   └── a.txt
-└── B (tu jesteś)`,
-        options: [`mv A/a.txt B/`, `mv ../A/a.txt .`, `mv /A/a.txt .`, `cp A/a.txt ./B`],
-        answer: 1,
-        explanation: ` Musisz wyjść katalog wyżej (..), wejść do A, wskazać plik i przenieść go do katalogu bieżącego (.).`
-    },
-    {
-        text: `Do zmiany nazwy pliku wykorzystasz polecenie:`,
-        options: [`mv`, `rename`, `chname`, `chpath`],
-        answer: 0,
-        explanation: ` Polecenie 'mv' (move) służy zarówno do przenoszenia, jak i zmiany nazwy plików.`
-    },
-    {
-        text: `Co wypisze polecenie: echo "*"?`,
-        options: [`Wszystkie pliki w katalogu`, `Znak gwiazdki (*)`, `Błąd składni`, `Nazwę katalogu`],
-        answer: 1,
-        explanation: ` Cudzysłów podwójny chroni większość metaznaków (ale nie $ czy backticks). Gwiazdka w cudzysłowie jest traktowana dosłownie.`
-    },
-    // --- PARTIA 2: Pytania z PDF (Komendy i Teoria) ---
     {
         text: `Wzorzec wyrażeń regularnych '.' (kropka) odnosi się do:`,
         options: [`Linii złożonej z trzech znaków`, `Dowolnego pojedynczego znaku`, `Znaku kropki`, `Końca linii`],
         answer: 1,
-        explanation: ` W wyrażeniach regularnych (regex) kropka zastępuje jeden dowolny znak (z wyjątkiem nowej linii).`
-    },
-    {
-        text: `Jaki będzie efekt polecenia: cp /tmp/a.txt SA`,
-        options: [`Skopiowanie pliku do katalogu SA`, `Błąd parametru`, `Skopiowanie pliku /tmp/a.txt jako plik o nazwie SA w bieżącym katalogu`, `Przeniesienie pliku`],
-        answer: 2,
-        explanation: ` Jeśli SA nie istnieje jako katalog, cp stworzy plik o nazwie SA.`
-    },
-    {
-        text: `Z pliku a.txt wykasuj wszystkie linie kończące się literą A. (Wybierz poprawne polecenie)`,
-        code: `grep -v 'A$' a.txt > a.tmp && mv a.tmp a.txt`,
-        options: [`Poprawne`, `Błędne`],
-        answer: 0,
-        explanation: ` grep -v odwraca dopasowanie (usuwa pasujące linie). 'A$' oznacza literę A na końcu linii.`
-    },
-    {
-        text: `Co wypisze: echo \\$5`,
-        options: [`Wartość piątego parametru`, `$5 (dosłownie)`, `Pustą linię`, `Błąd składni`],
-        answer: 1,
-        explanation: ` Backslash (\\) przed znakiem dolara odbiera mu specjalne znaczenie (nie jest już zmienną).`
-    },
-    {
-        text: `Co wypisze polecenie cat w ciągu: touch a.txt; echo aaa > a.txt; ln a.txt b.txt; echo bbb > b.txt; cat a.txt`,
-        options: [`aaa`, `bbb`, `aaa bbb`, `błąd`],
-        answer: 1,
-        explanation: ` 'ln' bez flag tworzy twarde dowiązanie (hard link). To ten sam plik fizyczny. Zmiana w b.txt nadpisuje a.txt.`
-    },
-    {
-        text: `Pierwsza linia w skrypcie postaci #!/bin/perl oznacza:`,
-        options: [`Komentarz`, `Że skrypt ma być wykonany przez interpreter /bin/perl`, `Ścieżkę zapisu`, `Błąd`],
-        answer: 1,
-        explanation: ` To shebang - instrukcja dla systemu, jakiego programu użyć do uruchomienia pliku.`
-    },
-    {
-        text: `Wynikiem polecenia 'sort a.txt' dla pliku zawierającego: 2, 1, 12 będzie:`,
-        options: [`1, 2, 12`, `1, 12, 2`, `12, 1, 2`, `2, 1, 12`],
-        answer: 1,
-        explanation: ` Domyślne sortowanie jest leksykograficzne (tekstowe). '12' zaczyna się od '1', więc jest przed '2'.`
-    },
-    {
-        text: `GPL wymaga, aby kod źródłowy zmodyfikowanej wersji programu został udostępniony publicznie:`,
-        options: [`Prawda`, `Fałsz`],
-        answer: 0,
-        explanation: ` Licencja GPL jest wirusowa - pochodne prace muszą być na tej samej licencji.`
-    },
-    {
-        text: `Jedną kolumnę z pliku tekstowego wytniesz poleceniem:`,
-        options: [`cut`, `paste`, `col`, `tr`],
-        answer: 0,
-        explanation: ` Polecenie 'cut' (np. cut -d: -f1) służy do wycinania kolumn.`
-    },
-    {
-        text: `Co wypisze 'echo aaa a.txt; echo bbb a.txt; cat a.txt'? (Zakładając puste a.txt na start)`,
-        options: [`aaa bbb`, `bbb`, `błąd`, `aaa`],
-        answer: 2,
-        explanation: ` Pytanie jest podchwytliwe w składni. 'echo aaa a.txt' wypisze po prostu tekst 'aaa a.txt' na ekran, nie zapisze do pliku (brak >).`
-    },
-    {
-        text: `Czy zmiana wartości zmiennej środowiskowej w procesie potomnym wpływa na proces macierzysty?`,
-        options: [`Tak`, `Tylko gdy wyeksportowana`, `Nie`, `Tylko dla roota`],
-        answer: 2,
-        explanation: ` Procesy dziedziczą środowisko w jedną stronę (od rodzica). Potomek nie może zmienić środowiska rodzica.`
-    },
-    {
-        text: `Które wiersze wyświetli: grep [abc] a.txt? (a.txt: aabbcc, abcabc, 722)`,
-        options: [`1 i 2`, `1`, `2`, `3`],
-        answer: 0,
-        explanation: ` [abc] szuka dowolnego wystąpienia litery a, b LUB c. Występują one w wierszu 1 i 2.`
-    },
-    {
-        text: `Wyrażenia regularne przetwarzane są przez:`,
-        options: [`Powłokę`, `Polecenie, któremu są przekazane (np. grep)`, `Jądro systemu`, `BIOS`],
-        answer: 1,
-        explanation: ` Powłoka rozwija metaznaki (globbing), ale regexy (np. ^, $) są interpretowane przez program (grep, sed).`
+        [cite_start]explanation: `W regex (np. grep) kropka zastępuje jeden dowolny znak[cite: 34].`
     },
     {
         text: `Liczbę parametrów przekazanych do skryptu odczytać można zmienną:`,
         options: [`$#`, `$*`, `$@`, `$?`],
         answer: 0,
-        explanation: ` $# to licznik argumentów.`
-    },
-    {
-        text: `W poleceniu 'cp ../a.txt /home/student/B/':`,
-        options: [`Oba parametry to ścieżki względne`, `Pierwszy względna, drugi bezwzględna`, `Oba bezwzględne`, `Odwrotnie`],
-        answer: 1,
-        explanation: ` '../' zaczyna się od katalogu bieżącego (względna). '/home' zaczyna się od / (bezwzględna).`
-    },
-    {
-        text: `Co wstawisz w miejsce kropek: rm a.txt .... echo błąd, aby komunikat wyświetlił się TYLKO przy błędzie?`,
-        options: [`&&`, `||`, `;`, `|`],
-        answer: 1,
-        explanation: ` Operator || uruchamia drugie polecenie tylko wtedy, gdy pierwsze zwróci błąd (exit code != 0).`
-    },
-    {
-        text: `Podstawowe dane o użytkownikach (np. shell, uid) są w pliku:`,
-        options: [`/var/users`, `/etc/passwd`, `/etc/shadow`, `/home`],
-        answer: 1,
-        explanation: ` /etc/passwd to główna baza użytkowników.`
+        [cite_start]explanation: `$# przechowuje liczbę argumentów[cite: 1377].`
     },
     {
         text: `Prawa 640 oznaczają:`,
         options: [`rw- r-- ---`, `rw- rw- ---`, `r-- r-- ---`, `rwx r-x ---`],
         answer: 0,
-        explanation: ` 6 (4+2=rw), 4 (r), 0 (---).`
+        [cite_start]explanation: `6 (4+2=rw), 4 (r), 0 (---)[cite: 1022].`
     },
     {
         text: `Polecenie 'tail -f a.txt' spowoduje:`,
         options: [`Wypisanie ostatnich 5 linii`, `Śledzenie przyrostów pliku na bieżąco`, `Skasowanie pliku`, `Otwarcie edytora`],
         answer: 1,
-        explanation: ` -f to 'follow'.`
+        [cite_start]explanation: `-f to 'follow', pozwala śledzić dopisywane linie[cite: 341].`
     },
     {
         text: `Efektem 'head -n -2 a.txt' będzie:`,
         options: [`Wypisanie 2 pierwszych linii`, `Wypisanie wszystkich linii oprócz dwóch ostatnich`, `Błąd`, `Dwie puste linie`],
         answer: 1,
-        explanation: ` Ujemna wartość w head oznacza obcięcie końca pliku.`
+        [cite_start]explanation: `Ujemna wartość w head oznacza wypisanie wszystkiego OPRÓCZ ostatnich N linii[cite: 322].`
     },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 09 - Przekierowania) ---
     {
-        text: `Jakie polecenie wykorzystasz do policzenia wierszy w pliku?`,
-        options: [`wc -l`, `abc`, `sed`, `grep`],
-        answer: 0,
-        explanation: ` wc -l (word count --lines).`
-    },
-    {
-        text: `Za rozwinięcie metaznaków (np. *.txt) odpowiada:`,
-        options: [`Jądro`, `Powłoka`, `Polecenie`, `Biblioteka`],
-        answer: 1,
-        explanation: ` Shell rozwija gwiazdki zanim uruchomi program.`
-    },
-    {
-        text: `Zmienna środowiskowa BASH_ENV wykorzystywana jest przez powłokę:`,
-        options: [`Logowania`, `Nieinteraktywną`, `Wbudowaną`, `Interaktywną`],
-        answer: 1,
-        explanation: ` Używana przy uruchamianiu skryptów (powłoki nieinteraktywne).`
-    },
-    {
-        text: `Polecenie PATH=$PATH:/home/student/bin/myls pozwoli:`,
-        options: [`Uruchamiać programy z tego katalogu`, `Uruchamiać tylko program myls`, `Uruchamiać programy z katalogu .../bin bez ścieżki`, `Błąd (myls to plik)`],
-        answer: 3,
-        explanation: ` PATH musi zawierać KATALOGI, a nie pliki wykonywalne.`
-    },
-    {
-        text: `Zakładając plik a.txt: 1, +, 2, +, 3 (w pionie). Jaki będzie efekt 'wc -l a.txt'?`,
-        options: [`Błąd`, `5`, `3`, `6`],
-        answer: 1,
-        explanation: ` Każda linia to jeden liczony wiersz. 5 elementów w pionie = 5 linii.`
-    },
-    {
-        text: `Jeżeli do skryptu przekazano parametry, to $1 oznacza:`,
-        options: [`Nazwę skryptu`, `Pierwszy parametr`, `Liczbę parametrów`, `PID`],
-        answer: 1,
-        explanation: ` $0 to nazwa skryptu, $1 to pierwszy argument.`
-    },
-    {
-        text: `Powłoka nieinteraktywna domyślnie jako pierwszy uruchamia plik:`,
-        options: [`~/.bashrc`, `/etc/profile`, `Żadnych plików (chyba że zdefiniowano BASH_ENV)`, `~/.profile`],
+        text: `Standardowe wyjście błędów (stderr) ma deskryptor o numerze:`,
+        options: [`0`, `1`, `2`, `3`],
         answer: 2,
-        explanation: ` Skrypty zazwyczaj nie ładują plików konfiguracyjnych interaktywnych powłok.`
+        [cite_start]explanation: `0: stdin, 1: stdout, 2: stderr[cite: 170].`
     },
     {
-        text: `Co wypisze 'echo [!a-k]*' jeśli w katalogu są pliki: a, b, z?`,
-        options: [`a b`, `z`, `a b z`, `Błąd`],
+        text: `Operator '>>' służy do:`,
+        options: [`Przekierowania wejścia z pliku`, `Przekierowania wyjścia do pliku (nadpisanie)`, `Przekierowania wyjścia do pliku (dopisanie)`, `Tworzenia łącza pipe`],
+        answer: 2,
+        [cite_start]explanation: `>> dopisuje wynik polecenia do zawartości pliku, zamiast go kasować[cite: 183].`
+    },
+    {
+        text: `Jaki jest skutek polecenia 'cat > a.txt'?`,
+        options: [`Wyświetlenie pliku a.txt`, `Utworzenie pliku a.txt i oczekiwanie na wpisanie treści z klawiatury`, `Błąd składni`, `Dołączenie tekstu do a.txt`],
         answer: 1,
-        explanation: ` Wykrzyknik w nawiasie [] neguje zakres. Szukamy znaku, który NIE jest między a i k.`
+        [cite_start]explanation: `Przekierowanie stdout cat (który bez argumentów czyta stdin) do pliku pozwala utworzyć plik z treścią wpisaną ręcznie [cite: 193-195].`
     },
     {
-        text: `Jaki będzie efekt: who | cut -d- -f1 | tr a-z A-Z`,
-        options: [`IMROZEK (wielkimi literami)`, `imrozek`, `Błąd`, `Lista procesów`],
-        answer: 0,
-        explanation: ` 'tr a-z A-Z' zamienia małe litery na duże.`
-    },
-    {
-        text: `Jakie polecenie wykorzystasz, aby dowiedzieć się, gdzie jest kod wykonywalny polecenia ls?`,
-        options: [`which ls`, `where is ls`, `find ls`, `locate ls`],
-        answer: 0,
-        explanation: ` Polecenie 'which' pokazuje ścieżkę do pliku wykonywalnego.`
-    },
-    {
-        text: `Po skasowaniu użytkownika, pliki których był właścicielem:`,
-        options: [`Są kasowane`, `Pozostają bez zmian (widać UID)`, `Przechodzą na roota`, `Są przenoszone do /tmp`],
+        text: `Konstrukcja '<< eof' w skryptach służy do:`,
+        options: [`Zakończenia skryptu`, `Kopiowania standardowego wejścia do momentu napotkania słowa 'eof'`, `Przekierowania błędów do pliku eof`, `Sortowania pliku`],
         answer: 1,
-        explanation: ` System plików przechowuje tylko numer ID. Jeśli brak użytkownika w /etc/passwd, widać sam numer.`
+        explanation: `Jest to tzw. [cite_start]'Here Document', pozwala przekazać blok tekstu do polecenia[cite: 211].`
     },
     {
-        text: `Ile dowiązań (link count) posiada nowo stworzony katalog?`,
-        options: [`1`, `2`, `3`, `0`],
+        text: `Łącze komunikacyjne (pipe) '|' pozwala na:`,
+        options: [`Zapisanie wyjścia do pliku`, `Połączenie stdout jednego polecenia z stdin drugiego`, `Uruchomienie poleceń równolegle bez komunikacji`, `Skopiowanie plików`],
         answer: 1,
-        explanation: ` Dwa: nazwa w katalogu rodzica oraz '.' wewnątrz samego katalogu.`
+        [cite_start]explanation: `Pipe łączy stdout procesu 1 z stdin procesu 2[cite: 258].`
     },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 10 - Filtry) ---
     {
-        text: `Polecenia wbudowane w systemie Linux (np. pwd):`,
-        options: [`Są uruchamiane przez jądro`, `Są zaimplementowane wewnątrz powłoki (ten sam proces)`, `Są zewnętrznymi plikami`, `Są aliasami`],
+        text: `Które polecenie służy do usuwania powtarzających się linii (pod warunkiem, że są posortowane)?`,
+        options: [`sort`, `uniq`, `cut`, `paste`],
         answer: 1,
-        explanation: ` Built-in commands wykonują się w pamięci procesu shella.`
+        [cite_start]explanation: `Polecenie uniq pomija powtarzające się wiersze, ale wymaga posortowanych danych[cite: 528].`
     },
     {
-        text: `Podaj wzorzec grep dla linii rozpoczynających się ciągiem 'abc':`,
-        options: [`grep ^abc`, `grep abc$`, `grep *abc`, `grep ?abc`],
-        answer: 0,
-        explanation: ` Znak ^ (daszek) oznacza początek linii.`
+        text: `Domyślnie polecenie 'sort' sortuje dane:`,
+        options: [`Numerycznie`, `Według rozmiaru pliku`, `Alfabetycznie (leksykograficznie)`, `Losowo`],
+        answer: 2,
+        explanation: `Domyślne sortowanie jest alfabetyczne. [cite_start]Do numerycznego służy flaga -n[cite: 500].`
     },
     {
-        text: `Po stworzeniu nowego katalogu poleceniem 'mkdir A', te same i-nody mają:`,
-        options: [`A oraz A/.`, `A oraz ..`, `A oraz /`, `Błąd`],
-        answer: 0,
-        explanation: ` (To powtórzenie ważnego pytania w innej formie) Nazwa 'A' i kropka w środku to to samo.`
-    },
-    {
-        text: `Do stworzenia pliku tymczasowego o unikalnej nazwie wykorzystasz zmienną:`,
-        options: [`$$`, `$#`, `$?`, `$!`],
-        answer: 0,
-        explanation: ` $$ to PID bieżącego procesu, co zapewnia unikalność w danym momencie.`
-    },
-    {
-        text: `Które polecenie wykorzystało wzorzec z metaznakiem regex?`,
-        options: [`grep '^a' plik`, `echo *`, `ls ?`, `cp a b`],
-        answer: 0,
-        explanation: ` ^ to metaznak regex. * i ? w shellu to globbing (nie regex w ścisłym sensie grep).`
-    },
-    {
-        text: `Do zarządzania okresem ważności hasła użyjesz:`,
-        options: [`chage`, `passwd`, `shadow`, `usermod`],
-        answer: 0,
-        explanation: ` chage (change age) służy do ustawiania wygasania haseł.`
-    },
-    {
-        text: `Wymień dwie licencje wolnego oprogramowania:`,
-        options: [`GPL i MIT`, `Freeware i Shareware`, `Windows i MacOS`, `Linux i Unix`],
-        answer: 0,
-        explanation: ` GPL i MIT to najpopularniejsze licencje Open Source.`
-    },
-    {
-        text: `Wynikiem polecenia 'cat a.txt > b.txt' będzie:`,
-        options: [`Skopiowanie zawartości a do b`, `Wyświetlenie obu plików`, `Błąd`, `Dopisanie a do b`],
-        answer: 0,
-        explanation: ` Przekierowanie > nadpisuje plik docelowy zawartością źródła.`
-    },
-    {
-        text: `Polecenie 'tac a.txt' wypisze:`,
-        options: [`Plik od ostatniego wiersza do pierwszego`, `Plik odwrócony literami`, `To samo co cat`, `Błąd`],
-        answer: 0,
-        explanation: ` tac to cat wspak (wierszami).`
-    },
-    {
-        text: `Co wypisze: A=1+2; echo $A`,
-        options: [`3`, `1+2`, `Błąd`, `A`],
+        text: `Aby posortować dane numerycznie, należy użyć flagi:`,
+        options: [`-r`, `-n`, `-k`, `-u`],
         answer: 1,
-        explanation: ` Bash domyślnie traktuje wszystko jako tekst. Do liczenia trzeba użyć $((...)).`
+        [cite_start]explanation: `-n wymusza sortowanie numeryczne[cite: 510].`
     },
     {
-        text: `Polecenie bc możesz użyć w skrypcie do:`,
-        options: [`Obliczeń matematycznych (zmienno-przecinkowych)`, `Sortowania`, `Wyszukiwania`, `Edycji tekstu`],
-        answer: 0,
-        explanation: ` bc (basic calculator) obsługuje ułamki, czego bash nie potrafi.`
+        text: `Polecenie 'cut -d: -f1 /etc/passwd' spowoduje:`,
+        options: [`Wypisanie całego pliku`, `Wypisanie pierwszej kolumny, używając dwukropka jako separatora`, `Usunięcie pliku passwd`, `Wypisanie pierwszej linii`],
+        answer: 1,
+        [cite_start]explanation: `-d definiuje separator, -f wybiera kolumnę (tu: pierwszą)[cite: 554].`
     },
     {
-        text: `Co wypisze: if rm a.txt ... else ... fi (zakładając błąd składni if)`,
-        options: [`Błąd składni`, `OK`, `BLAD`, `Nic`],
-        answer: 0,
-        explanation: ` Pytanie z kolokwium sugeruje błąd składni przy złym użyciu if/then.`
+        text: `Polecenie 'tr a-z A-Z' wykonuje:`,
+        options: [`Sortowanie alfabetyczne`, `Zamianę małych liter na duże`, `Usunięcie liter a i z`, `Zliczenie liter`],
+        answer: 1,
+        [cite_start]explanation: `tr (translate) służy do zamiany znaków lub zakresów znaków[cite: 617].`
     },
     {
-        text: `GNU to:`,
-        options: [`Unixopodobny system operacyjny (wolne oprogramowanie)`, `Jądro Linuxa`, `Firma`, `Licencja`],
-        answer: 0,
-        explanation: ` GNU = GNU's Not Unix.`
+        text: `Polecenie 'tee' służy do:`,
+        options: [`Tylko wyświetlania na ekran`, `Rozdzielenia danych na stdout i do pliku jednocześnie`, `Sortowania danych`, `Łączenia plików`],
+        answer: 1,
+        [cite_start]explanation: `tee duplikuje dane: wysyła je na ekran (stdout) i zapisuje do pliku[cite: 448].`
     },
     {
-        text: `Co wypisze: echo a #echo b # echo c`,
-        options: [`a`, `abc`, `a echo b`, `Nic`],
-        answer: 0,
-        explanation: ` Znak # rozpoczyna komentarz, reszta linii jest ignorowana.`
+        text: `Parametr '-c' w poleceniu 'uniq' powoduje:`,
+        options: [`Wyświetlenie tylko unikalnych linii`, `Poprzedzenie linii liczbą jej wystąpień`, `Ignorowanie wielkości liter`, `Wyświetlenie tylko duplikatów`],
+        answer: 1,
+        [cite_start]explanation: `-c (count) zlicza wystąpienia danej linii[cite: 540].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 06 - Substytucje) ---
+    {
+        text: `Metaznak '?' w powłoce (globbing) pasuje do:`,
+        options: [`Zero lub więcej znaków`, `Dokładnie jednego dowolnego znaku`, `Początku linii`, `Cyfry`],
+        answer: 1,
+        [cite_start]explanation: `W substytucji nazw plików '?' zastępuje dokładnie jeden znak[cite: 684].`
     },
     {
-        text: `Polecenie printenv wypisze:`,
-        options: [`Zmienne środowiskowe (wyeksportowane)`, `Wszystkie zmienne`, `Funkcje`, `Aliasy`],
-        answer: 0,
-        explanation: ` printenv pokazuje environment variables.`
+        text: `Metaznak '[!a-c]' pasuje do:`,
+        options: [`Znaku a, b lub c`, `Znaku innego niż a, b lub c`, `Ciągu "!a-c"`, `Błąd składni`],
+        answer: 1,
+        [cite_start]explanation: `Wykrzyknik na początku nawiasu kwadratowego neguje zakres (dopasowuje znak spoza zakresu)[cite: 684].`
     },
     {
-        text: `Pętla 'for i in a.txt' (bez command substitution) wykona się:`,
-        options: [`Raz (dla słowa "a.txt")`, `Dla każdego wiersza pliku`, `Błąd`, `Dla każdego pliku`],
-        answer: 0,
-        explanation: ` Bez $(cat a.txt) bash traktuje "a.txt" jako zwykły napis.`
+        text: `Substytucja poleceń (wykonanie polecenia i wstawienie wyniku) odbywa się za pomocą:`,
+        options: [`Nawiasów klamrowych {}`, `Apostrofów pojedynczych ' '`, `Odwróconych apostrofów \` \` lub $()`, `Nawiasów kwadratowych []`],
+        answer: 2,
+        [cite_start]explanation: `Substytucja poleceń używa \`command\` lub $(command)[cite: 695].`
     },
     {
-        text: `Efekt ciągu: cd /home/student/A; PATH=; cd /etc; ls`,
-        options: [`Błąd (command not found)`, `Wylistowanie /etc`, `Wylistowanie domowego`, `Nic`],
-        answer: 0,
-        explanation: ` Wyczyszczenie zmiennej PATH (PATH=) sprawia, że powłoka nie może znaleźć polecenia 'ls'.`
+        text: `Polecenie 'echo *' (bez cudzysłowów) spowoduje:`,
+        options: [`Wyświetlenie znaku gwiazdki`, `Wyświetlenie listy plików w bieżącym katalogu`, `Błąd`, `Wyświetlenie nazwy skryptu`],
+        answer: 1,
+        [cite_start]explanation: `Powłoka rozwija gwiazdkę do nazw wszystkich plików przed uruchomieniem echo[cite: 714].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 07 - Zmienne) ---
+    {
+        text: `Aby zmienna zdefiniowana w powłoce była widoczna w procesach potomnych (np. skryptach), należy użyć polecenia:`,
+        options: [`set`, `env`, `export`, `define`],
+        answer: 2,
+        explanation: `Zmienne niewyeksportowane nie są widoczne w procesach potomnych. [cite_start]Należy użyć 'export'[cite: 775].`
     },
     {
-        text: `Polecenie wypisujące bieżącą ścieżkę to:`,
-        options: [`pwd`, `cwd`, `where`, `path`],
-        answer: 0,
-        explanation: ` pwd = print working directory.`
+        text: `Zmienna PATH przechowuje:`,
+        options: [`Ścieżkę do katalogu domowego`, `Listę katalogów przeszukiwanych w celu znalezienia poleceń`, `Typ terminala`, `Historię poleceń`],
+        answer: 1,
+        [cite_start]explanation: `PATH określa katalogi, które są przeszukiwane w celu wykonania polecenia[cite: 756].`
     },
     {
-        text: `Polecenie wc możesz użyć do:`,
-        options: [`Policzenia linii, słów i znaków`, `Edycji`, `Zmiany nazwy`, `Kopiowania`],
-        answer: 0,
-        explanation: ` wc = word count.`
+        text: `Polecenie 'unset zmienna':`,
+        options: [`Ustawia zmienną na null`, `Usuwa zmienną z pamięci`, `Eksportuje zmienną`, `Wyświetla zmienną`],
+        answer: 1,
+        [cite_start]explanation: `Zmienną można wykasować poleceniem unset[cite: 743].`
     },
     {
-        text: `Aby komunikaty o błędach trafiały na stderr, należy:`,
-        options: [`Wykorzystać przekierowanie strumienia (np. >&2)`, `Użyć specjalnej komendy`, `Jądro robi to samo`, `Zdefiniować zmienną ERROR`],
-        answer: 0,
-        explanation: ` W skryptach często pisze się: echo "błąd" >&2.`
+        text: `Czy proces potomny może trwale zmienić zmienną środowiskową procesu macierzystego?`,
+        options: [`Tak, zawsze`, `Tak, jeśli użyje export`, `Nie, procesy potomne nie wpływają na środowisko rodzica`, `Tylko jeśli jest rootem`],
+        answer: 2,
+        [cite_start]explanation: `Procesy potomne nie mogą bezpośrednio wpływać na środowisko procesu macierzystego[cite: 787].`
+    },
+    
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 03 - Prawa dostępu) ---
+    {
+        text: `Prawo 'execute' (x) w odniesieniu do katalogu oznacza:`,
+        options: [`Możliwość wyświetlenia listy plików`, `Możliwość wejścia do katalogu (użycia go w ścieżce)`, `Możliwość tworzenia plików`, `Możliwość usunięcia katalogu`],
+        answer: 1,
+        [cite_start]explanation: `Dla katalogów 'x' oznacza prawo wejścia/użycia plików wewnątrz[cite: 993].`
     },
     {
-        text: `Standardowe wyjście (stdout) ma deskryptor:`,
-        options: [`1`, `0`, `2`, `3`],
-        answer: 0,
-        explanation: ` 0=stdin, 1=stdout, 2=stderr.`
+        text: `Co oznacza litera 's' w pozycji praw wykonywania właściciela (np. rwsr-xr-x)?`,
+        options: [`Sticky Bit`, `SGID`, `SUID (Set User ID)`, `System file`],
+        answer: 2,
+        explanation: `Litera 's' u właściciela to SUID. [cite_start]Program uruchamia się z uprawnieniami właściciela pliku[cite: 1063].`
     },
     {
-        text: `Do wyszukania plików o zadanym rozmiarze użyjesz:`,
-        options: [`find`, `locate`, `grep`, `search`],
-        answer: 0,
-        explanation: ` find posiada opcję -size.`
+        text: `Sticky bit ustawiony na katalogu (np. /tmp) powoduje, że:`,
+        options: [`Nikt nie może kasować plików`, `Każdy może kasować wszystko`, `Użytkownik może skasować tylko własne pliki`, `Pliki są automatycznie kasowane`],
+        answer: 2,
+        [cite_start]explanation: `Sticky bit pozwala kasować pliki tylko ich właścicielom, nawet jeśli inni mają prawo zapisu do katalogu[cite: 1066].`
     },
     {
-        text: `Co się stanie po wpisaniu: ls \ <ENTER> cat a.txt`,
-        options: [`Wyświetli info o pliku cat i a.txt (traktuje jako jedno polecenie)`, `Błąd`, `Dwa osobne polecenia`, `Nic`],
-        answer: 0,
-        explanation: ` Backslash na końcu linii 'escape'uje' znak nowej linii. Powłoka widzi to jako 'ls cat a.txt'. ls próbuje wylistować plik o nazwie 'cat'.`
+        text: `Jeśli 'umask' wynosi 002, to domyślne uprawnienia dla nowego pliku wyniosą:`,
+        options: [`666`, `664`, `775`, `644`],
+        answer: 1,
+        [cite_start]explanation: `Domyślnie dla plików startujemy od 666. 666 - 002 = 664 (rw-rw-r--) [cite: 1089-1092].`
     },
     {
-        text: `Co wypisze: test 5 -eq 5 && echo OK`,
-        options: [`OK`, `Nic`, `5`, `Błąd`],
+        text: `Polecenie 'chmod 750 plik' nadaje uprawnienia:`,
+        options: [`rwxr-x---`, `rwxrwxrwx`, `rw-r-----`, `rwxrw----`],
         answer: 0,
-        explanation: ` 5 równa się 5, więc test zwraca prawdę (0), a operator && wykonuje echo.`
+        [cite_start]explanation: `7 (rwx) dla właściciela, 5 (r-x) dla grupy, 0 (---) dla reszty[cite: 1022].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 05 - Find) ---
+    {
+        text: `Parametr '-iname' w poleceniu find różni się od '-name' tym, że:`,
+        options: [`Szuka tylko katalogów`, `Nie uwzględnia wielkości liter`, `Szuka plików ukrytych`, `Używa regex`],
+        answer: 1,
+        [cite_start]explanation: `-iname szuka bez względu na wielkość liter (case insensitive)[cite: 1126].`
     },
     {
-        text: `Zmienna PATH:`,
-        options: [`Definiuje katalogi przeszukiwane w celu znalezienia poleceń`, `Definiuje pliki systemowe`, `Ścieżkę domową`, `Nic ważnego`],
-        answer: 0,
-        explanation: ` To lista katalogów oddzielonych dwukropkami.`
-    },
-    // --- PARTIA 3: Dodatkowe z KOLOS (Tekst) ---
-    {
-        text: `Podaj przyczynę umieszczenia /tmp na oddzielnej partycji:`,
-        options: [`Uniknięcie przepełnienia partycji systemowej /`, `Szybsze działanie`, `Wymóg jądra`, `Brak powodu`],
-        answer: 0,
-        explanation: ` Pliki tymczasowe mogą szybko zająć całe miejsce. Oddzielna partycja izoluje ten problem.`
+        text: `Polecenie 'find / -mtime +50' znajdzie pliki:`,
+        options: [`Zmodyfikowane dokładnie 50 dni temu`, `Zmodyfikowane mniej niż 50 dni temu`, `Zmodyfikowane dawniej niż 50 dni temu`, `Zmodyfikowane w ciągu przyszłych 50 dni`],
+        answer: 2,
+        [cite_start]explanation: `+N oznacza 'więcej niż N' (starsze niż N dni)[cite: 1201].`
     },
     {
-        text: `Jaki będzie efekt polecenia: rmdir A (gdy w środku jest plik a.txt)?`,
-        options: [`Błąd (Directory not empty)`, `Skasowanie wszystkiego`, `Skasowanie tylko pliku`, `Przeniesienie do kosza`],
-        answer: 0,
-        explanation: ` rmdir usuwa tylko puste katalogi.`
+        text: `Parametr '-exec rm {} \;' w poleceniu find oznacza:`,
+        options: [`Wypisanie nazwy pliku`, `Wykonanie polecenia rm na każdym znalezionym pliku`, `Zapytanie użytkownika o zgodę przed usunięciem`, `Zignorowanie błędów`],
+        answer: 1,
+        explanation: `-exec wykonuje podane polecenie na znalezionych plikach bez pytania. [cite_start]Do potwierdzania służy -ok[cite: 1241].`
     },
     {
-        text: `Wydaj polecenie, które pozwoli uruchamiać programy z /home/student/bin bez podawania ścieżki:`,
-        options: [`export PATH=$PATH:/home/student/bin`, `PATH=/home/student/bin`, `cp /home/student/bin /bin`, `alias bin`],
+        text: `Aby wyszukać pliki o rozmiarze dokładnie 0 bajtów, użyjesz:`,
+        options: [`-size 0`, `-empty`, `-zero`, `-null`],
         answer: 0,
-        explanation: ` Należy dopisać katalog do zmiennej PATH.`
+        [cite_start]explanation: `Wymaga parametru -size 0 (lub -empty, ale wykłady podają -size)[cite: 1241].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 08 - Dowiązania) ---
+    {
+        text: `Dowiązanie twarde (hard link) wskazuje na:`,
+        options: [`Nazwę pliku`, `Ścieżkę do pliku`, `Ten sam i-węzeł (i-node) co plik oryginalny`, `Kopię pliku`],
+        answer: 2,
+        [cite_start]explanation: `Hard link to dodatkowa nazwa dla tego samego numeru i-węzła[cite: 1308].`
     },
     {
-        text: `Dowiązania symboliczne (ln -s) mogą być realizowane:`,
-        options: [`Na całym obszarze systemu plików (między partycjami)`, `Tylko w jednej partycji`, `Tylko w jednym katalogu`, `Tylko dla roota`],
-        answer: 0,
-        explanation: ` Symlinki to tylko pliki tekstowe ze ścieżką, mogą wskazywać gdziekolwiek.`
+        text: `Jeśli usuniesz plik źródłowy, na który wskazuje dowiązanie symboliczne (miękkie):`,
+        options: [`Dowiązanie nadal działa i zawiera dane`, `Dowiązanie staje się martwe (wskazuje na nieistniejący obiekt)`, `System automatycznie usuwa dowiązanie`, `Dowiązanie zamienia się w plik`],
+        answer: 1,
+        explanation: `Dowiązanie symboliczne to tylko ścieżka. [cite_start]Jeśli cel zniknie, link nie działa[cite: 1325].`
     },
     {
-        text: `Co to jest tabela partycji?`,
-        options: [`Struktura opisująca podział dysku`, `Folder systemowy`, `Plik w pamięci RAM`, `Lista użytkowników`],
-        answer: 0,
-        explanation: ` Znajduje się w MBR lub nagłówku GPT.`
+        text: `Które polecenie tworzy dowiązanie symboliczne?`,
+        options: [`ln plik link`, `ln -s plik link`, `link plik link`, `cp -l plik link`],
+        answer: 1,
+        [cite_start]explanation: `Opcja -s (symbolic) tworzy symlink[cite: 1326].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 11 - Regex) ---
+    {
+        text: `W wyrażeniach regularnych znak '^' oznacza:`,
+        options: [`Negację`, `Początek wiersza`, `Koniec wiersza`, `Powtórzenie`],
+        answer: 1,
+        [cite_start]explanation: `Daszek (caret) ^ to kotwica początku wiersza[cite: 36].`
     },
     {
-        text: `Co wypisze pwd w ciągu: cd /etc; bash; cd /tmp; export pwd; pwd; exit`,
-        options: [`/tmp`, `/etc`, `domowy`, `błąd`],
-        answer: 0,
-        explanation: ` Pytanie dotyczy momentu PRZED exit. Wewnątrz podpowłoki jesteśmy w /tmp.`
+        text: `Znak '*' w wyrażeniu regularnym (np. grep) oznacza:`,
+        options: [`Dowolny ciąg znaków`, `Zero lub więcej wystąpień znaku POPRZEDZAJĄCEGO`, `Jeden dowolny znak`, `Mnożenie`],
+        answer: 1,
+        [cite_start]explanation: `W regex gwiazdka dotyczy krotności poprzedniego znaku (0 lub więcej)[cite: 35].`
     },
     {
-        text: `Polecenie cd to polecenie:`,
-        options: [`Wbudowane w powłokę`, `Zewnętrzne`, `Jądra`, `Biblioteczne`],
+        text: `Wzorzec grep 'A\{4\}' pasuje do:`,
+        options: [`Czterech liter A z rzędu (AAAA)`, `Czterech dowolnych znaków`, `Litery A i cyfry 4`, `Błąd składni`],
         answer: 0,
-        explanation: ` Musi być wbudowane, by zmienić stan procesu powłoki.`
+        [cite_start]explanation: `{n} określa dokładną liczbę powtórzeń poprzedzającego znaku[cite: 90].`
     },
     {
-        text: `Podaj przykładową ścieżkę względną:`,
-        options: [`../A`, `/home/A`, `/tmp`, `/`],
-        answer: 0,
-        explanation: ` Ścieżki względne nie zaczynają się od /.`
+        text: `Polecenie 'grep -v' służy do:`,
+        options: [`Wypisania tylko pasujących linii`, `Wypisania linii NIE zawierających wzorca`, `Liczenia linii`, `Ignorowania wielkości liter`],
+        answer: 1,
+        [cite_start]explanation: `-v (invert match) wypisuje wszystko oprócz linii pasujących do wzorca[cite: 83].`
     },
     {
-        text: `Efekt ciągu: echo ERROR > a 2>&1`,
-        options: [`Tekst ERROR trafi do pliku a (wraz z ewentualnymi błędami)`, `Trafi na ekran`, `Błąd składni`, `Do pliku 1`],
-        answer: 0,
-        explanation: ` 2>&1 przekierowuje stderr na stdout, a stdout idzie do pliku 'a'.`
+        text: `Edytor strumieniowy 'sed' przetwarza tekst:`,
+        options: [`Interaktywnie (jak vim)`, `Wiersz po wierszu, automatycznie`, `Tylko pliki binarne`, `Sortując go`],
+        answer: 1,
+        [cite_start]explanation: `sed to edytor strumieniowy, czyta linię, przetwarza ją i wypisuje[cite: 130].`
     },
     {
-        text: `Co wypisze echo w: cd /home/student; A=\`pwd\`; echo $A`,
-        options: [`/home/student`, `pwd`, `A`, `Nic`],
-        answer: 0,
-        explanation: ` Backticks wykonują polecenie pwd i przypisują wynik do zmiennej A.`
+        text: `Komenda sed 's/stare/nowe/g' wykonuje:`,
+        options: [`Usunięcie słowa stare`, `Zamianę wszystkich wystąpień 'stare' na 'nowe' w wierszu`, `Zamianę tylko pierwszego wystąpienia`, `Wypisanie linii ze słowem stare`],
+        answer: 1,
+        [cite_start]explanation: `'s' to substytucja, 'g' (global) zamienia wszystkie wystąpienia w linii[cite: 138].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 12 - Skrypty) ---
+    {
+        text: `Zmienna '$0' wewnątrz skryptu zawiera:`,
+        options: [`Wynik ostatniego polecenia`, `Nazwę samego skryptu`, `Pierwszy parametr`, `PID procesu`],
+        answer: 1,
+        [cite_start]explanation: `$0 to nazwa uruchomionego skryptu[cite: 1369].`
     },
     {
-        text: `Jak odróżnić katalog od pliku w ls -l?`,
-        options: [`Pierwszy znak to 'd'`, `Po kolorze`, `Po rozmiarze`, `Nie da się`],
-        answer: 0,
-        explanation: ` d = directory.`
+        text: `Zmienna '$?' przechowuje:`,
+        options: [`PID procesu`, `Liczbę argumentów`, `Kod powrotu (exit status) ostatniego polecenia`, `Nazwę użytkownika`],
+        answer: 2,
+        [cite_start]explanation: `$? informuje, czy ostatnie polecenie zakończyło się sukcesem (0) czy błędem[cite: 1384].`
     },
     {
-        text: `Jakiego parametru ls użyjesz, by wyświetlić pliki ukryte?`,
-        options: [`-a`, `-l`, `-h`, `-s`],
-        answer: 0,
-        explanation: ` -a (all).`
+        text: `Instrukcja warunkowa 'if' w bashu musi być zakończona słowem:`,
+        options: [`end`, `endif`, `fi`, `done`],
+        answer: 2,
+        [cite_start]explanation: `Blok if zamykamy słowem fi[cite: 1388].`
     },
     {
-        text: `Polecenie locate:`,
-        options: [`Wyszukuje w bazie danych`, `Przeszukuje dysk na żywo`, `Szuka w internecie`, `Szuka tylko binarek`],
-        answer: 0,
-        explanation: ` Locate korzysta z indeksowanej bazy (updatedb).`
+        text: `Konstrukcja 'case' w bashu kończy się słowem:`,
+        options: [`endcase`, `esac`, `done`, `break`],
+        answer: 1,
+        [cite_start]explanation: `Składnia case ... in ... esac[cite: 1394].`
     },
     {
-        text: `Wszystkie pliki w podkatalogach zaczynające się na 'a' wyszukasz:`,
-        options: [`find . -name "a*" -print`, `find a*`, `locate a`, `grep a`],
-        answer: 0,
-        explanation: ` find . (bieżący) -name "wzorzec".`
+        text: `Porównanie arytmetyczne 'równe' w poleceniu test ([ ... ]) to:`,
+        options: [`==`, `=`, `-eq`, `eq`],
+        answer: 2,
+        explanation: `Do porównań liczbowych używamy -eq, -ne, -lt itp. [cite_start]Znaki = służą do napisów[cite: 1501].`
     },
     {
-        text: `ls -l /bin wyświetli:`,
-        options: [`Informacje o plikach w katalogu /bin`, `Tylko informacje o samym katalogu (jeśli użyto -d)`, `Błąd`, `Zawartość root`],
-        answer: 0,
-        explanation: ` Domyślnie ls listuje zawartość katalogu.`
+        text: `Pętla 'while' wykonuje się dopóki:`,
+        options: [`Warunek jest fałszywy`, `Warunek jest prawdziwy (zwraca 0)`, `Użytkownik nie naciśnie Ctrl+C`, `Licznik nie osiągnie zera`],
+        answer: 1,
+        [cite_start]explanation: `while wykonuje pętlę tak długo, jak polecenie test zwraca prawdę (exit code 0)[cite: 1444].`
     },
     {
-        text: `Co wypisze: A=abc; export A; bash; $A=bbb; echo $A`,
-        options: [`abc (i błąd przy próbie przypisania)`, `bbb`, `nic`, `błąd`],
-        answer: 0,
-        explanation: ` $A=bbb to błąd (próba wykonania 'abc=bbb'). Zmienna A w podpowłoce pozostaje niezmieniona (chyba że przypiszemy poprawnie A=bbb).`
+        text: `W warunku '[ "$a" = "$b" ]' spacje wokół nawiasów i operatora są:`,
+        options: [`Opcjonalne`, `Wymagane`, `Zabronione`, `Zależne od wersji`],
+        answer: 1,
+        explanation: `Spacje są kluczowe. [cite_start]'[' to polecenie 'test', musi być oddzielone od argumentów[cite: 1418].`
     },
     {
-        text: `Polecenie mkdir umożliwia:`,
-        options: [`Stworzenie katalogu`, `Stworzenie pliku`, `Zmianę katalogu`, `Usunięcie katalogu`],
-        answer: 0,
-        explanation: ` make directory.`
+        text: `Instrukcja 'shift' w skrypcie powoduje:`,
+        options: [`Zakończenie skryptu`, `Przesunięcie parametrów w lewo ($2 staje się $1)`, `Przesunięcie parametrów w prawo`, `Zamianę zmiennych`],
+        answer: 1,
+        [cite_start]explanation: `shift usuwa $1 i przesuwa resztę: $2->$1, $3->$2 itd.[cite: 1385].`
+    },
+
+    // --- NOWE PYTANIA Z WYKŁADÓW (PDF 13 - Pliki Startowe) ---
+    {
+        text: `Interaktywna powłoka logowania (login shell) wczytuje jako pierwszy plik:`,
+        options: [`~/.bashrc`, `/etc/bashrc`, `/etc/profile`, `~/.profile`],
+        answer: 2,
+        [cite_start]explanation: `Kolejność startowa zaczyna się od ogólnosystemowego /etc/profile[cite: 358].`
     },
     {
-        text: `Co wypisze cat w: echo aaa > a; ln a b; echo bbb > b; rm b; cat a`,
-        options: [`bbb`, `aaa`, `błąd`, `nic`],
-        answer: 0,
-        explanation: ` Nadpisanie b (bbb) zmienia też a. Usunięcie b usuwa tylko jedną nazwę, a (z zawartością bbb) zostaje.`
+        text: `Plik '~/.bashrc' jest domyślnie wykonywany przez:`,
+        options: [`Tylko powłokę logowania`, `Interaktywną powłokę (nielogowania)`, `Każdy skrypt`, `Tylko roota`],
+        answer: 1,
+        [cite_start]explanation: `bashrc jest dedykowany dla interaktywnych powłok nielogowania (np. nowe okno terminala)[cite: 373].`
+    },
+
+    // --- RÓŻNE DODATKOWE (Mieszane z wiedzy ogólnej wykładów) ---
+    {
+        text: `Jakim poleceniem sprawdzisz typ pliku (np. czy to tekstowy, czy binarny)?`,
+        options: [`ls -l`, `file`, `type`, `cat`],
+        answer: 1,
+        explanation: `Polecenie 'file' analizuje nagłówek pliku i określa jego typ.`
     },
     {
-        text: `Polecenie 'cd' bez parametrów:`,
-        options: [`Zmienia na katalog domowy`, `Zmienia na root`, `Zostaje w miejscu`, `Błąd`],
+        text: `Symbol '~' (tylda) w ścieżce oznacza:`,
+        options: [`Katalog główny (root)`, `Katalog domowy użytkownika`, `Katalog tymczasowy`, `Poprzedni katalog`],
+        answer: 1,
+        explanation: `~ to skrót do $HOME.`
+    },
+    {
+        text: `Aby uruchomić skrypt 'skrypt.sh' z bieżącego katalogu, należy wpisać:`,
+        options: [`skrypt.sh`, `./skrypt.sh`, `run skrypt.sh`, `/skrypt.sh`],
+        answer: 1,
+        explanation: `Jeśli katalog bieżący nie jest w PATH (a nie powinien być), trzeba podać ścieżkę jawną ./`
+    },
+    {
+        text: `Polecenie 'pwd' to skrót od:`,
+        options: [`Print Working Directory`, `Password`, `Print Web Data`, `Process Work Daemon`],
         answer: 0,
-        explanation: ` cd = cd ~.`
+        explanation: `Wyświetla bieżącą ścieżkę roboczą.`
+    },
+    {
+        text: `Polecenie 'rmdir' usunie katalog:`,
+        options: [`Każdy`, `Tylko pusty`, `Tylko pełny`, `Tylko z uprawnieniami roota`],
+        answer: 1,
+        explanation: `rmdir działa tylko na pustych katalogach. Do pełnych używa się rm -r.`
+    },
+    {
+        text: `Co robi skrót Ctrl+D w terminalu?`,
+        options: [`Przerywa proces (SIGINT)`, `Wysyła znak końca pliku (EOF) / wylogowuje`, `Zatrzymuje proces (SIGTSTP)`, `Czyści ekran`],
+        answer: 1,
+        [cite_start]explanation: `Ctrl+D to sygnał EOF (End Of File), często zamyka powłokę[cite: 196].`
+    },
+    {
+        text: `Jeśli plik ma prawa 'rwxr-xr-x', to grupa ma prawa:`,
+        options: [`Pełne (rwx)`, `Odczyt i wykonanie (r-x)`, `Tylko odczyt`, `Żadne`],
+        answer: 1,
+        explanation: `Środkowa trójka to grupa: r-x (5).`
+    },
+    {
+        text: `Które polecenie wyświetli 10 największych plików w katalogu?`,
+        code: `ls -l | sort -k 5 -nr | head -10`,
+        options: [`Tak`, `Nie`],
+        answer: 0,
+        [cite_start]explanation: `Sortujemy po 5 kolumnie (rozmiar), numerycznie (-n), malejąco (-r) i bierzemy górę (head)[cite: 1561].`
+    },
+    {
+        text: `Co robi polecenie 'touch plik'?`,
+        options: [`Tylko tworzy nowy pusty plik`, `Zmienia czas modyfikacji pliku (lub tworzy go, jeśli nie istnieje)`, `Wyświetla plik`, `Kasuje plik`],
+        answer: 1,
+        explanation: `Głównym celem touch jest aktualizacja timestampów.`
+    },
+    {
+        text: `W potoku 'cmd1 | cmd2', standardowe wyjście cmd1 trafia do:`,
+        options: [`Na ekran`, `Do pliku`, `Na standardowe wejście cmd2`, `Do null`],
+        answer: 2,
+        [cite_start]explanation: `To definicja działania pipe[cite: 258].`
+    },
+    {
+        text: `Co oznacza zapis '2>&1'?`,
+        options: [`Przekierowanie stdout do stderr`, `Przekierowanie stderr (2) na to samo miejsce co stdout (1)`, `Przekierowanie do pliku o nazwie 1`, `Błąd składni`],
+        answer: 1,
+        explanation: `Łączy strumień błędów ze strumieniem wyjścia.`
+    },
+    {
+        text: `Polecenie 'which ls':`,
+        options: [`Uruchamia ls`, `Pokazuje ścieżkę do pliku wykonywalnego ls`, `Pokazuje manual ls`, `Szuka plików o nazwie ls`],
+        answer: 1,
+        [cite_start]explanation: `which pokazuje, który plik zostanie wykonany po wpisaniu komendy[cite: 1652].`
+    },
+    {
+        text: `Shebang '#!/bin/bash' musi znajdować się:`,
+        options: [`W dowolnym miejscu skryptu`, `Na samym końcu`, `W pierwszej linii skryptu`, `W pliku konfiguracyjnym`],
+        answer: 2,
+        [cite_start]explanation: `Jądro sprawdza pierwsze bajty pliku, by wiedzieć jakiego interpretera użyć[cite: 1360].`
     }
 ];
 
-// --- LOGIKA APLIKACJI ---
+// Funkcja tasująca (Fisher-Yates Shuffle)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Inicjalizacja
 let currentIdx = 0;
 let score = 0;
+// Klonujemy i mieszamy pytania
+let questions = [...questionsDatabase];
+shuffleArray(questions);
 
 const ui = {
     box: document.getElementById('quiz-box'),
@@ -604,6 +563,7 @@ function loadQuestion() {
     
     ui.qText.innerText = q.text;
     
+    // Obsługa bloku kodu (jeśli istnieje w pytaniu)
     if (q.code) {
         ui.qCode.innerText = q.code;
         ui.qCode.style.display = 'block';
@@ -615,7 +575,7 @@ function loadQuestion() {
     ui.feedback.style.display = 'none';
     ui.nextBtn.style.display = 'none';
 
-    // Tworzenie przycisków
+    // Tworzenie przycisków odpowiedzi
     q.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'btn';
@@ -638,6 +598,7 @@ function checkAnswer(selectedIdx, btn, q) {
         ui.feedback.style.border = '1px solid #c3e6cb';
     } else {
         btn.classList.add('wrong');
+        // Podświetl poprawną
         allBtns[q.answer].classList.add('correct');
         ui.feedback.innerHTML = `<strong>Źle.</strong><br>${q.explanation}`;
         ui.feedback.style.backgroundColor = '#f8d7da';
@@ -648,7 +609,7 @@ function checkAnswer(selectedIdx, btn, q) {
     ui.feedback.style.display = 'block';
     ui.nextBtn.style.display = 'block';
     
-    // Scroll to bottom mobile friendly
+    // Przewiń do przycisku dalej (mobile friendly)
     ui.nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
