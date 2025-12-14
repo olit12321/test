@@ -137,8 +137,7 @@
     <h1>Quiz Systemy Operacyjne</h1>
 
     <div id="error-box" class="error-msg"></div>
-
-    <div id="loading-msg" class="loading">Wczytywanie pytań z pliku dane.csv...</div>
+    <div id="loading-msg" class="loading">Wczytywanie pytań...</div>
 
     <div id="quiz-interface" style="display: none;">
         <div class="stats">
@@ -173,27 +172,22 @@
     let score = 0;
     let isAnswered = false;
 
-    // Uruchomienie PapaParse po załadowaniu strony
     window.onload = function() {
-        Papa.parse("dane.csv", {
-            download: true,       // Pobierz plik z URL
-            header: true,         // Pierwszy wiersz to nagłówki
-            skipEmptyLines: true, // Pomiń puste linie
+        // Dodano parametr ?v=... aby wymusić pobranie nowej wersji pliku (omija cache)
+        Papa.parse("dane.csv?v=" + new Date().getTime(), {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
             complete: function(results) {
-                console.log("Pobrano dane:", results);
                 if (results.data && results.data.length > 0) {
                     processParsedData(results.data);
                 } else {
                     showError("Plik dane.csv jest pusty lub niepoprawny.");
                 }
             },
-            error: function(err, file) {
-                console.error("Błąd PapaParse:", err);
-                showError(`Nie udało się pobrać pliku dane.csv.<br>
-                <strong>Możliwe przyczyny:</strong><br>
-                1. Plik nie nazywa się dokładnie "dane.csv" (wielkość liter ma znaczenie na GitHub!).<br>
-                2. Plik nie znajduje się w głównym folderze repozytorium.<br>
-                Szczegóły błędu: ${err.message}`);
+            error: function(err) {
+                console.error("Błąd:", err);
+                showError("Nie udało się pobrać pliku dane.csv. Upewnij się, że plik jest w repozytorium i ma poprawną nazwę (małe litery).");
             }
         });
     };
@@ -206,23 +200,19 @@
     }
 
     function processParsedData(data) {
-        // Mapowanie danych z CSV na strukturę quizu
-        // Oczekujemy kolumn: "Pytanie", "Poprawna odpowiedź", "Inna opcja 1", "Inna opcja 2", "Inna opcja 3"
-        
         quizData = data.map(row => {
-            // Sprawdzenie czy wiersz ma pytanie (zabezpieczenie przed pustymi wierszami)
             if (!row["Pytanie"]) return null;
 
             const correct = row["Poprawna odpowiedź"];
-            // Tworzenie tablicy wszystkich opcji
+            // Filtrowanie pustych opcji
             let options = [
                 correct,
                 row["Inna opcja 1"],
                 row["Inna opcja 2"],
                 row["Inna opcja 3"]
-            ].filter(opt => opt !== undefined && opt !== ""); // Usuń puste opcje jeśli jakieś są
+            ].filter(opt => opt !== undefined && opt !== "" && opt !== null);
 
-            // Mieszanie odpowiedzi
+            // Mieszanie odpowiedzi (A, B, C, D)
             let shuffledOptions = options
                 .map(value => ({ value, sort: Math.random() }))
                 .sort((a, b) => a.sort - b.sort)
@@ -233,12 +223,16 @@
                 options: shuffledOptions,
                 correctIndex: shuffledOptions.indexOf(correct)
             };
-        }).filter(item => item !== null); // Usuń ewentualne nulle
+        }).filter(item => item !== null);
 
         if (quizData.length > 0) {
+            // === TUTAJ JEST NOWOŚĆ: TASOWANIE PYTAŃ ===
+            // Sortujemy tablicę pytań w losowej kolejności
+            quizData.sort(() => Math.random() - 0.5);
+            
             initQuiz();
         } else {
-            showError("Nie znaleziono poprawnych pytań w pliku. Sprawdź nagłówki kolumn w CSV.");
+            showError("Brak poprawnych pytań w pliku.");
         }
     }
 
@@ -259,7 +253,6 @@
         document.getElementById('current-num').textContent = currentQuestionIndex + 1;
         document.getElementById('question-text').textContent = currentData.question;
         
-        // Pasek postępu
         const percent = (currentQuestionIndex / quizData.length) * 100;
         document.getElementById('progress').style.width = percent + '%';
 
