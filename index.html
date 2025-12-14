@@ -1,284 +1,343 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Linux - Pełna Baza (113 pytań)</title>
-<style>
-body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;max-width:850px;margin:0 auto;padding:20px;background:#f0f2f5;color:#1c1e21}
-.box{background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-h1{text-align:center;color:#1877f2;margin-bottom:10px}
-.stats{text-align:right;font-weight:600;margin-bottom:25px;color:#65676b;font-size:0.95em}
-.q-text{font-size:1.25em;margin-bottom:25px;line-height:1.5;font-weight:500}
-.opts{display:grid;gap:12px}
-button{padding:16px;border:2px solid #dddfe2;background:#fff;cursor:pointer;border-radius:8px;text-align:left;font-size:1em;transition:all 0.2s;color:#1c1e21;width:100%}
-button:hover:not([disabled]){background:#f2f4f8;border-color:#ccd0d5}
-button.correct{background:#e7f3ff;border-color:#1877f2;color:#1877f2;font-weight:600} /* Blue for correct match style, or keep green */
-button.correct-style{background:#d4edda;border-color:#28a745;color:#155724}
-button.wrong{background:#f8d7da;border-color:#dc3545;color:#721c24}
-.feedback{margin-top:20px;padding:15px;border-radius:8px;display:none;line-height:1.5}
-.next{display:block;width:100%;margin-top:25px;background:#1877f2;color:#fff;text-align:center;font-weight:bold;border:none;padding:14px;border-radius:6px;font-size:1.1em;cursor:pointer}
-.next:hover{background:#166fe5}
-.hidden{display:none}
-#end h1{color:#1877f2}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Systemy Operacyjne</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .error-msg {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-box {
+            margin-bottom: 2rem;
+            display: none; /* Hidden until loaded */
+        }
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+        .option-btn {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            background-color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            color: #444;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
+        }
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        button#next-btn {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: none;
+        }
+        button#next-btn:hover {
+            background-color: #0056b3;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        #result-container {
+            text-align: center;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="box" id="quiz">
- <h1>Baza Pytań Linux</h1>
- <div class="stats">Pytanie <span id="cur">1</span> z <span id="tot">0</span> | Wynik: <span id="score">0</span></div>
- <div class="q-text" id="qt"></div>
- <div class="opts" id="os"></div>
- <div id="fb" class="feedback"></div>
- <button id="nb" class="next hidden">Następne pytanie</button>
-</div>
+<div class="quiz-container">
+    <h1>Quiz Systemy Operacyjne</h1>
 
-<div class="box hidden" id="end">
- <h1>Koniec Quizu!</h1>
- <p style="text-align:center;font-size:1.3em;margin:30px 0">Twój wynik: <strong id="fs" style="color:#1877f2"></strong> / <strong id="ft"></strong></p>
- <button class="next" onclick="location.reload()">Rozpocznij ponownie</button>
+    <div id="error-box" class="error-msg"></div>
+
+    <div id="loading-msg" class="loading">Wczytywanie pytań z pliku dane.csv...</div>
+
+    <div id="quiz-interface" style="display: none;">
+        <div class="stats">
+            <span>Pytanie <span id="current-num">1</span> z <span id="total-num">0</span></span>
+            <span>Wynik: <span id="current-score">0</span></span>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <div class="question-box" style="display: block;">
+            <div class="question-text" id="question-text"></div>
+            <div class="options-grid" id="options-container"></div>
+        </div>
+
+        <div class="controls">
+            <button id="next-btn" onclick="nextQuestion()">Następne pytanie</button>
+        </div>
+    </div>
+
+    <div id="result-container">
+        <h2>Koniec Quizu!</h2>
+        <p>Twój wynik: <strong style="font-size: 1.5rem;"><span id="final-score">0</span> / <span id="total-score">0</span></strong></p>
+        <button onclick="location.reload()" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 20px;">Zagraj ponownie</button>
+    </div>
 </div>
 
 <script>
-// JSON zawierający dokładnie 113 pytań z przesłanych plików
-const allQuestions = [
-  {"q": "Wzorzec wyrażeń regularnych ... (trzy kropki) odnosi się do:", "a": "linii zawierających przynajmniej trzy dowolne znaki", "o": ["linii złożonych dokładnie z trzech dowolnych znaków", "linii zawierających przynajmniej trzy dowolne znaki", "linii złożonej dokładnie z trzech znaków kropki", "linii zawierających ciąg znaków AS"]},
-  {"q": "Jaki będzie efekt działania następującego ciągu poleceń: cd; pwd; cd /etc; cp /tmp/a.txt (argument docelowy nieczytelny/zmienny, np. $A lub ~):", "a": "Do katalogu domowego skopiowany zostanie plik /tmp/a.txt", "o": ["Polecenie cp zgłosi błąd", "Do katalogu domowego skopiowany zostanie plik /tmp/a.txt", "Do katalogu bieżącego skopiowany zostanie plik /tmp/a.txt i nazwany pwd", "Do katalogu /etc skopiowany zostanie plik /tmp/a.txt"]},
-  {"q": "Polecenie sort -t: -k3,3n /etc/passwd posortuje plik passwd według:", "a": "trzeciego pola (UID) numerycznie", "o": ["trzeciego pola (UID) numerycznie", "nazwy użytkownika", "grupy (GID) numerycznie", "powłoki systemowej"]},
-  {"q": "Polecenie ls -l wyświetla rozmiar pliku w:", "a": "bajtach", "o": ["bajtach", "kilobajtach", "blokach", "megabajtach"]},
-  {"q": "Aby usunąć katalog niepusty wraz z zawartością należy użyć polecenia:", "a": "rm -rf katalog", "o": ["rmdir katalog", "rm -rf katalog", "del katalog", "erase katalog"]},
-  {"q": "Znak tyldy (~) w ścieżce oznacza:", "a": "katalog domowy aktualnego użytkownika", "o": ["katalog główny", "katalog domowy aktualnego użytkownika", "katalog nadrzędny", "katalog tmp"]},
-  {"q": "Polecenie chmod 755 plik oznacza uprawnienia:", "a": "rwxr-xr-x", "o": ["rwxr-xr-x", "rwxrwxrwx", "rw-r--r--", "rwx------"]},
-  {"q": "Co oznacza skrót PID?", "a": "Process IDentifier", "o": ["Process IDentifier", "Program ID", "Personal ID", "Parent ID"]},
-  {"q": "Które polecenie służy do zmiany hasła użytkownika?", "a": "passwd", "o": ["pwd", "passwd", "pass", "chpass"]},
-  {"q": "Polecenie grep służy do:", "a": "wyszukiwania wzorca w tekście", "o": ["wyszukiwania plików", "wyszukiwania wzorca w tekście", "sortowania plików", "zmiany uprawnień"]},
-  {"q": "Co robi operator > w powłoce bash?", "a": "przekierowuje wyjście standardowe do pliku (nadpisując)", "o": ["przekierowuje wyjście błędów", "przekierowuje wejście", "przekierowuje wyjście standardowe do pliku (nadpisując)", "dołącza do pliku"]},
-  {"q": "Jakim poleceniem sprawdzisz aktualny katalog roboczy?", "a": "pwd", "o": ["cd", "ls", "pwd", "dir"]},
-  {"q": "Katalog /dev zawiera:", "a": "pliki urządzeń", "o": ["pliki konfiguracyjne", "pliki użytkowników", "pliki urządzeń", "pliki tymczasowe"]},
-  {"q": "Polecenie touch służy do:", "a": "tworzenia pustego pliku lub aktualizacji czasu dostępu", "o": ["tworzenia katalogu", "tworzenia pustego pliku lub aktualizacji czasu dostępu", "usuwania pliku", "kopiowania pliku"]},
-  {"q": "Co wypisze polecenie echo w następującym ciągu poleceń: cd /home/student; pvd=abc; export pvd; bash; pvd=bbb; export pvd; exit; echo $pvd", "a": "abc", "o": ["error", "bbb", "/home/student", "abc"]},
-  {"q": "Definiując partycję 'swap' jako punkt montowania wskażesz:", "a": "przy partycji swap nie wskazuje się punktu montowania", "o": ["plik /swap", "katalog /swap", "przy partycji swap nie wskazuje się punktu montowania", "plik /memory/swap", "katalog /dev/swap"]},
-  {"q": "Do zmiany nazwy pliku wykorzystasz polecenie:", "a": "mv", "o": ["chname", "rename", "chpath", "mv"]},
-  {"q": "Do wyszukania plików o zadanym rozmiarze wykorzystasz:", "a": "polecenie find", "o": ["polecenia fsize", "polecenie grep", "polecenie locate lub polecenie find", "polecenie find", "polecenie locate"]},
-  {"q": "Co wypisze polecenie pwd w następującym ciągu poleceń: cd /home/student; export bash; bash; cd /tmp; export bash; cd /home; exit; pwd", "a": "/home/student", "o": ["błąd", "żadna z podanych odpowiedzi nie jest poprawna", "/tmp", "/home", "/home/student"]},
-  {"q": "Jednym poleceniem w katalogu bieżącym załóż katalog A a w nim katalog B", "a": "mkdir A A/B"},
-  {"q": "Zakładając, że zawartość katalogu bieżącego jest następująca (pliki: 1, 2, 12...). Co wypisze następujące polecenie: echo *[12]*", "a": "1 12 2 - w zależności od sortowania", "o": ["1 2 12", "1 2", "1 2", "[12]"]},
-  {"q": "Co wypisze polecenie echo $A w ostatnim wierszu? A=10; export A; sh; A=5 + 10; echo $A", "a": "5 + 10", "o": ["Błąd działania matematycznego", "15", "5 + 10", "5A"]},
-  {"q": "Po stworzeniu nowego katalogu poleceniem mkdir A następujące wpisy będą posiadały ten sam numer i-node'u (dowiązania)", "a": "A oraz ./A/.", "o": ["A oraz ./A/.", "A oraz /A/...", ". oraz ./A/", "./A/. oraz /A/.."]},
-  {"q": "W katalogu bieżącym skasuj plik o nazwie *.", "a": "rm \\*", "o": ["rm \\*"]},
-  {"q": "Załóż, że w katalogu /student/home masz strukturę... przenieś plik a.txt z katalogu A do katalogu B.", "a": "mv A/a.txt B/"},
-  {"q": "Podaj jedną z przyczyn dla której należy rozważyć umiejscowienie katalogu /tmp na oddzielnej partycji", "a": "Katalog /tmp zawiera pliki tymczasowe i ich nagromadzanie się na podstawowej partycji może wpłynąć niekorzystnie na działanie systemu."},
-  {"q": "Zakładając, że w katalogu bieżącym istnieje katalog A, a w nim plik a.txt, jaki będzie efekt działania następującego polecenia: rmdir A?", "a": "Wyświetli informację o błędzie", "o": ["Wyświetli informację o błędzie", "Wykasuje zawartość katalogu A (plik a.txt)", "Wykasuje katalog A łącznie z jego zawartością (plikiem a.txt)"]},
-  {"q": "Podaj polecenie, które pozwoli Ci się dowiedzieć ile dowiązań ma plik a znajdujący się w katalogu bieżącym.", "a": "ls -l a"},
-  {"q": "Wydaj polecenie które pozwoli z dowolnego miejsca uruchamiać programy znajdujące się w katalogu /home/student/bin bez podawania do nich ścieżki.", "a": "export PATH=$PATH:/home/student/bin"},
-  {"q": "Dowiązania symboliczne (realizowane poleceniem ln -s) mogą być realizowane:", "a": "na całym obszarze systemu plików", "o": ["na całym obszarze systemu plików", "tylko w obszarze jednego systemu plików", "tylko w obszarze jednego katalogu", "na całym obszarze pojedynczego dysku"]},
-  {"q": "Co to jest tabela partycji?", "a": "Struktura danych opisująca podział dysku na partycje", "o": ["Specjalny folder używany do montowania partycji", "Tabela w procesie przechowująca informacje o otwartych plikach", "Struktura danych opisująca podział dysku na partycje", "Tabela w procesie przechowująca identyfikatory otwartych partycji", "Katalog zawierający pliki konfiguracyjne systemu"]},
-  {"q": "Co wypisze polecenie pwd w następującym ciągu poleceń: cd /etc; bash; cd /tmp; export pwd; pwd; exit", "a": "/tmp"},
-  {"q": "Polecenie cd to polecenie:", "a": "wbudowane w powłokę", "o": ["wbudowane w jądro systemu", "zewnętrzne", "polecenie standardowej biblioteki wej-wyj", "wbudowane w powłokę"]},
-  {"q": "Podaj przykładową (dowolną) ścieżkę w postaci względnej.", "a": "../A"},
-  {"q": "Efektem działania następującego ciągu poleceń będzie wypisanie: cd /home/student/A; PATH=; cd /etc; ls :", "a": "błędu", "o": ["zawartości katalogu domowego", "błędu", "zawartości katalogu /home/student/A", "zawartości katalogu /tmp"]},
-  {"q": "Ciąg znaków ERROR jako efekt działania polecenia echo ERROR >a 2>& zostanie skierowany:", "a": "do pliku a", "o": ["do pliku &", "do pliku a", "na ekran"]},
-  {"q": "Z katalogu bieżącego wykasuj plik a.", "a": "rm a"},
-  {"q": "Wyświetl zawartość katalogu bieżącego", "a": "ls -l"},
-  {"q": "Jak zapisać informacje o błędach generowane przez polecenie ls -l do pliku a?", "a": "ls -l 2>a"},
-  {"q": "Polecenie PATH=$PATH:/home/student/bin/myls pozwoli:", "a": "uruchamiać programy (w tym program myls) z katalogu /home/student/bin bez podawania do nich ścieżek (tylko same nazwy)", "o": ["uruchamiać program myls z katalogu /home/student/bin bez podawania do niego ścieżki (tylko samą nazwę)", "uruchamiać programy (w tym program myls) z katalogu /home/student/bin bez podawania do nich ścieżek (tylko same nazwy)", "uruchamiać programy z katalogu /home/student/bin bez podawania do nich ścieżek (tylko same nazwy)", "uruchamiać programy z katalogu /home/student/bin/myls bez podawania do nich ścieżek (tylko same nazwy)"]},
-  {"q": "Jaki będzie efekt działania następującego ciągu poleceń: cd; A=`pwd`; cd /etc; cp /tmp/a $A", "a": "Do katalogu domowego skopiowany zostanie plik /tmp/a", "o": ["Do katalogu /etc skopiowany zostanie plik /tmp/a z zachowaniem nazwy (a).", "Do katalogu bieżącego skopiowany zostanie plik /tmp/a i nazwany pwd.", "Polecenie cp zgłosi błąd związany z niepoprawną liczbą parametrów.", "Do katalogu domowego skopiowany zostanie plik /tmp/a"]},
-  {"q": "Jakiego parametru użyjesz aby wyświetlić również pliki ukryte poleceniem ls?", "a": "-a", "o": ["-l", "-s", "-h", "-a", "-u"]},
-  {"q": "Zmień katalog bieżący na katalog domowy", "a": "cd ~ lub cd ~/"},
-  {"q": "Polecenie cd wydane bez dodatkowych parametrów:", "a": "Zmieni katalog bieżący na katalog domowy danego użytkownika", "o": ["Zmieni katalog bieżący na katalog \"/\"", "Zmieni katalog bieżący na katalog domowy danego użytkownika", "Pozostanie w katalogu bieżącym", "Wyświetli ścieżkę do katalogu bieżącego", "Wypisze błąd składni"]},
-  {"q": "Co wypisze polecenie echo w następującym ciągu poleceń: cd /home/student; A=`pwd`; echo $A", "a": "/home/student", "o": ["pwd", "/home/student", "nie wypisze nic", "$A"]},
-  {"q": "Zakładając, że znajdujesz się w katalogu /home/student/B skopiuj plik a (z katalogu obok A) do katalogu B", "a": "cp ../A/a ./"},
-  {"q": "Polecenie mkdir umożliwia:", "a": "stworzenie katalogu", "o": ["stworzenie pliku oraz stworzenie katalogu", "stworzenie pliku", "stworzenie katalogu", "zmianę praw dostępu do katalogu"]},
-  {"q": "Zakładając, że katalogiem domowym użytkownika jest katalog /home/student co wypisze polecenie pwd w następującym ciągu poleceń: cd /etc; bash; pwd", "a": "/etc"},
-  {"q": "Polecenie locate:", "a": "Wyszukuje zadany plik posługując się swoją bazą danych", "o": ["Wyszukuje zadany plik posługując się swoją bazą danych", "Pozwala wyszukać wyłącznie pliki systemowe", "Wyszukuje zadany plik każdorazowo przeglądając zawartość systemów plików", "Pozwala zlokalizować pliki o zadanych prawach dostępu", "Pozwala w pliku znaleźć numer wiersza w którym występuje zadany ciąg znaków"]},
-  {"q": "Wszystkie pliki, tylko z katalogu bieżącego i jego podkatalogów, których nazwa rozpoczyna się na literę \"a\" wyszukasz poleceniem:", "a": "find. -name \"a*\" -print", "o": ["find. -name a -print", "find / -name a* -print", "find. \"a*\" -print", "find. -name \"a*\" -print", "find. -name a* -print"]},
-  {"q": "Zakładając, że w katalogu \"/\" jest katalog bin oraz katalog binary polecenie ls -l /bin:", "a": "Wyświetli informacje o katalogu /bin", "o": ["Wyświetli zawartość katalogu /bin i /binary oraz wszystkich katalogów, których nazwa rozpoczyna się od bin", "Wyświetli informacje o katalogu /bin", "Wyświetli zawartość katalogu /bin oraz jego podkatalogów", "Wyświetli zawartość katalogu /bin"]},
-  {"q": "Co wypisze polecenie echo w następującym ciągu poleceń: A=abc; export A; bash; $A=bbb; echo $A; exit", "a": "abc"},
-  {"q": "Jaki będzie efekt działania polecenia: echo \"*\"?", "a": "Wypisze *", "o": ["Wypisze *", "Wypisze \"*\" (gwiazdkę łącznie z cudzysłowem)", "Wypisze wszystkie pliki z katalogu bieżącego", "Wypisze wszystkie pliki oraz zawartość podkatalogów katalogu bieżącego"]},
-  {"q": "Jak odróżnić katalog od pliku w wyniku polecenia \"ls -l\"?", "a": "Katalogi jako pierwszy znak w prawach dostępu mają literę \"d\"", "o": ["Katalogi jako pierwszy znak w prawach dostępu mają literę \"d\"", "Po rozmiarze (katalogi mają stały rozmiar 4096)", "Katalogi od plików odróżnić można tylko z wykorzystaniem atrybutu \"-d\" polecenia \"ls\"", "Nazwy katalogów wypisywane są wielkimi literami", "Katalogi są wyświetlane na niebiesko"]},
-  {"q": "Co wypisze polecenie cat w następującym ciągu poleceń: echo aaa > a; ln a b; echo bbb > b; rm b; cat a", "a": "aaa", "o": ["aaa", "aaa bbb", "Błąd odwołania do pliku", "bbb aaa", "bbb"]},
-  {"q": "Z katalogu bieżącego skopiuj plik a do katalogu /tmp", "a": "cp a /tmp/"},
-  {"q": "W wyniku wykonania polecenia ls -l jak odróżnisz pliki od katalogów?", "a": "Katalogi zaczynają się od \"d\" w prawach dostępu."},
-  {"q": "Z katalogu bieżącego przenieś plik a do katalogu /tmp.", "a": "mv a /tmp/"},
-  {"q": "Co wypisze polecenie cat w następującym ciągu poleceń: echo aaa > a; echo bbb >> a; cat a", "a": "aaa / bbb (w osobnych wierszach)", "o": ["bbb", "aaa", "Wypisze komunikat o błędzie", "aaa / bbb (w osobnych wierszach)"]},
-  {"q": "Efektem polecenia head -n -2 a.txt będzie:", "a": "wypisanie z pliku a.txt wszystkich wierszy oprócz dwóch ostatnich", "o": ["dodanie nagłówka", "wypisanie z pliku a.txt wszystkich wierszy oprócz dwóch ostatnich", "wypisanie drugiej linii", "wypisanie dwóch pierwszych linii"]},
-  {"q": "Operator > służy do:", "a": "przekierowania standardowego wyjścia do pliku", "o": ["przekierowania standardowego wejścia z pliku", "przekierowania standardowego wyjścia błędów do pliku", "przekierowania standardowego wyjścia do pliku", "dołączenia standardowego wyjścia do pliku"]},
-  {"q": "Polecenie tail -n +2 a.txt spowoduje:", "a": "wyświetlenie z pliku a.txt wszystkich wierszy oprócz pierwszego", "o": ["wyświetlenie z pliku a.txt pierwszego wiersza", "wyświetlenie z pliku a.txt wszystkich wierszy oprócz pierwszego", "Wyświetlenie z pliku a.txt wszystkich wierszy oprócz drugiego"]},
-  {"q": "Użytkownik imrozek nie będzie mógł skasować pliku a.txt znajdującego się w katalogu z prawami dr-xrwxrwx (właściciel imrozek). Prawda czy Fałsz?", "a": "Fałsz (będzie mógł, bo ma prawa do katalogu)", "o": ["Prawda", "Fałsz"]},
-  {"q": "Polecenie rmdir służy do:", "a": "usuwania pustych katalogów", "o": ["usuwania plików", "usuwania pustych katalogów", "usuwania katalogów wraz z zawartością", "zmiany nazwy katalogu"]},
-  {"q": "Polecenie cp -r służy do:", "a": "kopiowania katalogów wraz z zawartością", "o": ["kopiowania plików ukrytych", "kopiowania katalogów wraz z zawartością", "interaktywnego kopiowania plików", "usuwania plików po skopiowaniu"]},
-  {"q": "Znak .. (dwie kropki) w ścieżce oznacza:", "a": "katalog nadrzędny", "o": ["katalog bieżący", "katalog nadrzędny", "katalog domowy", "katalog główny"]},
-  {"q": "Polecenie man służy do:", "a": "wyświetlania podręcznika systemowego", "o": ["zarządzania zadaniami", "wyświetlania podręcznika systemowego", "zarządzania pamięcią", "konfiguracji sieci"]},
-  {"q": "Zmienna środowiskowa PATH zawiera:", "a": "listę katalogów przeszukiwanych w celu znalezienia polecenia", "o": ["ścieżkę do katalogu domowego", "listę katalogów przeszukiwanych w celu znalezienia polecenia", "aktualny katalog roboczy", "typ terminala"]},
-  {"q": "Polecenie wc -l plik.txt:", "a": "zliczy liczbę linii w pliku", "o": ["zliczy liczbę słów w pliku", "zliczy liczbę znaków w pliku", "zliczy liczbę linii w pliku", "wyświetli zawartość pliku"]},
-  {"q": "Polecenie whoami wyświetla:", "a": "nazwę aktualnie zalogowanego użytkownika", "o": ["nazwę komputera", "nazwę aktualnie zalogowanego użytkownika", "czas pracy systemu", "listę zalogowanych użytkowników"]},
-  {"q": "Polecenie history służy do:", "a": "wyświetlania historii wprowadzonych poleceń", "o": ["czyszczenia ekranu", "wyświetlania historii wprowadzonych poleceń", "wyświetlania historii logowań", "przywracania usuniętych plików"]},
-  {"q": "Skrót klawiszowy Ctrl+C w terminalu zazwyczaj:", "a": "przerywa działanie aktualnego procesu", "o": ["kopiuje tekst", "wkleja tekst", "przerywa działanie aktualnego procesu", "czyści ekran"]},
-  {"q": "Polecenie ps służy do:", "a": "wyświetlania aktualnie uruchomionych procesów", "o": ["zarządzania hasłami", "wyświetlania aktualnie uruchomionych procesów", "edycji plików tekstowych", "drukowania plików"]},
-  {"q": "Polecenie kill służy do:", "a": "wysyłania sygnałów do procesów (np. zakończenia)", "o": ["usuwania plików", "wysyłania sygnałów do procesów (np. zakończenia)", "zatrzymywania systemu", "wylogowania użytkownika"]},
-  {"q": "Co oznacza znak | (pipe) w powłoce?", "a": "przekazuje wyjście jednego polecenia na wejście drugiego", "o": ["uruchamia polecenia w tle", "przekazuje wyjście jednego polecenia na wejście drugiego", "oznacza alternatywę logiczną", "przekierowuje wyjście do pliku"]},
-  {"q": "Polecenie df -h wyświetla:", "a": "zajętość dysków w formacie czytelnym dla człowieka", "o": ["zawartość pliku", "zajętość dysków w formacie czytelnym dla człowieka", "drzewo katalogów", "listę procesów"]},
-  {"q": "Polecenie free służy do:", "a": "sprawdzania zajętości pamięci RAM", "o": ["sprawdzania wolnego miejsca na dysku", "sprawdzania zajętości pamięci RAM", "zwolnienia zasobów systemowych", "sprawdzania obciążenia procesora"]},
-  {"q": "Katalog /bin zawiera:", "a": "podstawowe polecenia systemowe dostępne dla wszystkich użytkowników", "o": ["pliki konfiguracyjne", "podstawowe polecenia systemowe dostępne dla wszystkich użytkowników", "pliki tymczasowe", "katalogi domowe użytkowników"]},
-  {"q": "Polecenie uname -a wyświetla:", "a": "szczegółowe informacje o systemie i jądrze", "o": ["nazwę użytkownika", "szczegółowe informacje o systemie i jądrze", "adres IP", "listę grup"]},
-  {"q": "Polecenie du -sh katalog:", "a": "wyświetli sumaryczny rozmiar katalogu w formacie czytelnym", "o": ["usunie katalog", "wyświetli sumaryczny rozmiar katalogu w formacie czytelnym", "skopiuje katalog", "zmieni uprawnienia katalogu"]},
-  {"q": "Co robi polecenie alias?", "a": "tworzy skrót lub alternatywną nazwę dla polecenia", "o": ["uruchamia program w pętli", "tworzy skrót lub alternatywną nazwę dla polecenia", "zmienia nazwę pliku", "wyświetla listę użytkowników"]},
-  {"q": "Polecenie tar służy głównie do:", "a": "archiwizacji plików (tworzenia paczek)", "o": ["kompresji plików", "archiwizacji plików (tworzenia paczek)", "szyfrowania plików", "wysyłania plików przez sieć"]},
-  {"q": "Jak rozpakować archiwum plik.tar.gz?", "a": "tar -xzvf plik.tar.gz", "o": ["tar -cvf plik.tar.gz", "tar -xzvf plik.tar.gz", "unzip plik.tar.gz", "rar x plik.tar.gz"]},
-  {"q": "Polecenie ssh służy do:", "a": "bezpiecznego logowania zdalnego", "o": ["kopiowania plików", "bezpiecznego logowania zdalnego", "przeglądania stron www", "wysyłania maili"]},
-  {"q": "Polecenie ping służy do:", "a": "sprawdzania dostępności hosta w sieci", "o": ["pobierania plików", "sprawdzania dostępności hosta w sieci", "skanowania portów", "konfiguracji karty sieciowej"]},
-  {"q": "Co robi polecenie sudo?", "a": "pozwala wykonać polecenie z uprawnieniami innego użytkownika (zazwyczaj root)", "o": ["zmienia hasło", "pozwala wykonać polecenie z uprawnieniami innego użytkownika (zazwyczaj root)", "loguje na konto root", "aktualizuje system"]},
-  {"q": "Polecenie chown służy do:", "a": "zmiany właściciela pliku/katalogu", "o": ["zmiany grupy", "zmiany właściciela pliku/katalogu", "zmiany uprawnień", "zmiany nazwy"]},
-  {"q": "Co oznacza uprawnienie 'x' dla pliku?", "a": "prawo do wykonania (uruchomienia) pliku", "o": ["prawo do zapisu", "prawo do odczytu", "prawo do wykonania (uruchomienia) pliku", "prawo do usunięcia"]},
-  {"q": "Co oznacza uprawnienie 'x' dla katalogu?", "a": "prawo do wejścia do katalogu", "o": ["prawo do listowania zawartości", "prawo do wejścia do katalogu", "prawo do tworzenia plików", "prawo do usuwania katalogu"]},
-  {"q": "Polecenie top służy do:", "a": "monitorowania procesów i zasobów systemu w czasie rzeczywistym", "o": ["wyświetlania nagłówka pliku", "monitorowania procesów i zasobów systemu w czasie rzeczywistym", "sortowania plików", "edycji tekstu"]},
-  {"q": "Katalog /etc zawiera:", "a": "pliki konfiguracyjne systemu", "o": ["pliki wykonywalne", "pliki konfiguracyjne systemu", "pliki tymczasowe", "pliki użytkowników"]},
-  {"q": "Katalog /root to:", "a": "katalog domowy administratora (root)", "o": ["katalog główny systemu plików", "katalog domowy administratora (root)", "katalog z plikami jądra", "katalog instalacyjny"]},
-  {"q": "Co robi polecenie ln -s plik link?", "a": "tworzy dowiązanie symboliczne (miękkie)", "o": ["tworzy dowiązanie twarde", "tworzy dowiązanie symboliczne (miękkie)", "kopiuje plik", "zmienia nazwę pliku"]},
-  {"q": "Polecenie find / -name '*.conf' wyszuka:", "a": "wszystkie pliki z rozszerzeniem .conf w całym systemie", "o": ["pliki konfiguracyjne w bieżącym katalogu", "wszystkie pliki z rozszerzeniem .conf w całym systemie", "tekst .conf w plikach", "katalogi o nazwie .conf"]},
-  {"q": "Co robi polecenie diff plik1 plik2?", "a": "porównuje zawartość dwóch plików i pokazuje różnice", "o": ["łączy dwa pliki", "porównuje zawartość dwóch plików i pokazuje różnice", "kopiuje różnice", "usuwa różnice"]},
-  {"q": "Polecenie which ls:", "a": "pokaże pełną ścieżkę do programu ls", "o": ["wykona polecenie ls", "pokaże pełną ścieżkę do programu ls", "pokaże pomoc do ls", "znajdzie wszystkie pliki ls"]},
-  {"q": "Co robi polecenie date?", "a": "wyświetla lub ustawia datę i czas systemowy", "o": ["tylko wyświetla datę", "wyświetla lub ustawia datę i czas systemowy", "synchronizuje czas z internetem", "zmienia strefę czasową"]},
-  {"q": "Polecenie cal wyświetla:", "a": "kalendarz", "o": ["kalkulator", "kalendarz", "czas pracy", "listę połączeń"]},
-  {"q": "Co robi polecenie clear?", "a": "czyści ekran terminala", "o": ["czyści historię", "czyści ekran terminala", "czyści pamięć RAM", "usuwa pliki tymczasowe"]},
-  {"q": "Polecenie exit służy do:", "a": "zakończenia sesji powłoki", "o": ["wyłączenia komputera", "zakończenia sesji powłoki", "zrestartowania systemu", "usypiania systemu"]},
-  {"q": "Co robi polecenie shutdown -h now?", "a": "natychmiast wyłącza system", "o": ["restartuje system", "natychmiast wyłącza system", "wylogowuje użytkownika", "usypia system"]},
-  {"q": "Co robi polecenie reboot?", "a": "restartuje system", "o": ["wyłącza system", "restartuje system", "wylogowuje", "zawiesza system"]},
-  {"q": "Polecenie useradd służy do:", "a": "tworzenia nowego konta użytkownika", "o": ["dodawania użytkownika do grupy", "tworzenia nowego konta użytkownika", "zmiany hasła", "usuwania użytkownika"]},
-  {"q": "Polecenie groupadd służy do:", "a": "tworzenia nowej grupy", "o": ["dodawania użytkownika do grupy", "tworzenia nowej grupy", "usuwania grupy", "zmiany nazwy grupy"]},
-  {"q": "Polecenie ifconfig (lub ip addr) służy do:", "a": "konfiguracji i wyświetlania informacji o interfejsach sieciowych", "o": ["testowania połączenia", "konfiguracji i wyświetlania informacji o interfejsach sieciowych", "skanowania sieci", "zmiany adresu MAC"]},
-  {"q": "Co oznacza & na końcu polecenia?", "a": "uruchomienie polecenia w tle", "o": ["przekierowanie błędów", "uruchomienie polecenia w tle", "zatrzymanie polecenia", "przekazanie danych"]},
-  {"q": "Polecenie jobs wyświetla:", "a": "listę zadań uruchomionych w tle", "o": ["listę wszystkich procesów", "listę zadań uruchomionych w tle", "harmonogram zadań", "listę użytkowników"]},
-  {"q": "Polecenie fg %1:", "a": "przywraca zadanie nr 1 na pierwszy plan", "o": ["zabija zadanie nr 1", "przywraca zadanie nr 1 na pierwszy plan", "uruchamia zadanie nr 1 w tle", "zatrzymuje zadanie nr 1"]},
-  {"q": "Polecenie bg %1:", "a": "wznawia zatrzymane zadanie nr 1 w tle", "o": ["zabija zadanie nr 1", "wznawia zatrzymane zadanie nr 1 w tle", "przywraca na pierwszy plan", "usuwa z listy zadań"]},
-  {"q": "Co robi Ctrl+Z?", "a": "zatrzymuje (wstrzymuje) aktualny proces i wysyła go do tła", "o": ["kończy proces", "zatrzymuje (wstrzymuje) aktualny proces i wysyła go do tła", "wylogowuje", "czyści ekran"]},
-  {"q": "Polecenie umask służy do:", "a": "ustalania domyślnych uprawnień dla nowo tworzonych plików", "o": ["zmiany uprawnień istniejących plików", "ustalania domyślnych uprawnień dla nowo tworzonych plików", "ukrywania plików", "szyfrowania plików"]},
-  {"q": "Co robi polecenie wget?", "a": "pobiera pliki z sieci", "o": ["wysyła pliki", "pobiera pliki z sieci", "przegląda strony", "testuje sieć"]},
-  {"q": "Polecenie curl służy m.in. do:", "a": "transferu danych z lub do serwera (np. pobieranie stron, API)", "o": ["kompresji", "transferu danych z lub do serwera (np. pobieranie stron, API)", "edycji tekstu", "zarządzania dyskiem"]},
-  {"q": "Co to jest demon (daemon)?", "a": "proces działający w tle, zazwyczaj obsługujący usługi systemowe", "o": ["wirus", "proces działający w tle, zazwyczaj obsługujący usługi systemowe", "program graficzny", "błąd systemu"]},
-  {"q": "Katalog /var/log zawiera:", "a": "logi (dzienniki) systemowe", "o": ["pliki tymczasowe", "logi (dzienniki) systemowe", "poczta użytkowników", "strony www"]},
-  {"q": "Polecenie less służy do:", "a": "wygodnego przeglądania zawartości plików tekstowych (stronicowanie)", "o": ["edycji plików", "wygodnego przeglądania zawartości plików tekstowych (stronicowanie)", "usuwania linii", "kopiowania plików"]},
-  {"q": "Jaka jest różnica między more a less?", "a": "less pozwala na przewijanie w obu kierunkach i jest bardziej zaawansowany", "o": ["nie ma różnicy", "more jest nowsze", "less pozwala na przewijanie w obu kierunkach i jest bardziej zaawansowany", "more koloruje składnię"]},
-  {"q": "Polecenie sed jest:", "a": "edytorem strumieniowym do przetwarzania tekstu", "o": ["edytorem graficznym", "edytorem strumieniowym do przetwarzania tekstu", "przeglądarką plików", "kompilatorem"]},
-  {"q": "Polecenie awk służy głównie do:", "a": "przetwarzania i analizy tekstu (głównie kolumnowego)", "o": ["edycji wideo", "przetwarzania i analizy tekstu (głównie kolumnowego)", "zarządzania siecią", "tworzenia kopii zapasowych"]},
-  {"q": "Co robi polecenie cut -d: -f1 /etc/passwd?", "a": "wycina i wyświetla pierwsze pole (login) z pliku passwd, używając : jako separatora", "o": ["usuwa plik", "wycina i wyświetla pierwsze pole (login) z pliku passwd, używając : jako separatora", "kopiuje plik", "sortuje plik"]},
-  {"q": "Polecenie tr służy do:", "a": "zamiany lub usuwania znaków", "o": ["trasowania pakietów", "zamiany lub usuwania znaków", "testowania RAM", "tworzenia raportów"]},
-  {"q": "Co robi polecenie env?", "a": "wyświetla zmienne środowiskowe", "o": ["uruchamia powłokę", "wyświetla zmienne środowiskowe", "zmienia hasło", "edytuje zmienne"]},
-  {"q": "Plik .bashrc zawiera:", "a": "konfigurację powłoki bash dla użytkownika (aliasy, zmienne)", "o": ["historię poleceń", "konfigurację powłoki bash dla użytkownika (aliasy, zmienne)", "hasła", "logi systemowe"]},
-  {"q": "Co oznacza shebang #!/bin/bash na początku skryptu?", "a": "wskazuje interpreter, który ma wykonać skrypt", "o": ["to tylko komentarz", "wskazuje interpreter, który ma wykonać skrypt", "oznacza plik wykonywalny", "definiuje zmienne"]},
-  {"q": "Jak uruchomić skrypt w bieżącym katalogu?", "a": "./skrypt.sh (jeśli ma prawa x)", "o": ["skrypt.sh", "./skrypt.sh (jeśli ma prawa x)", "run skrypt.sh", "start skrypt.sh"]},
-  {"q": "Polecenie uniq służy do:", "a": "usuwania sąsiadujących duplikatów linii", "o": ["usuwania wszystkich duplikatów", "usuwania sąsiadujących duplikatów linii", "sortowania unikalnego", "zliczania unikalnych słów"]},
-  {"q": "Co robi ls -R?", "a": "listuje zawartość katalogów rekurencyjnie", "o": ["listuje od tyłu", "listuje zawartość katalogów rekurencyjnie", "pokazuje roota", "pokazuje tylko do odczytu"]}
-];
+    let quizData = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let isAnswered = false;
 
-// Logika Quizu
-let currentIdx = 0;
-let score = 0;
-let isAnswered = false;
-const totalQuestions = allQuestions.length;
-const questionEl = document.getElementById('qt');
-const optionsEl = document.getElementById('os');
-const feedbackEl = document.getElementById('fb');
-const nextBtn = document.getElementById('nb');
-const scoreEl = document.getElementById('score');
-const totalEl = document.getElementById('tot');
+    // Pobieranie pliku CSV
+    fetch('dane.csv')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Nie udało się wczytać pliku dane.csv (Status: ${response.status}). Upewnij się, że plik jest w tym samym folderze.`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            parseCSV(text);
+        })
+        .catch(err => {
+            document.getElementById('loading-msg').style.display = 'none';
+            const errorBox = document.getElementById('error-box');
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = `
+                <strong>Błąd wczytywania:</strong> ${err.message}<br><br>
+                <em>Uwaga: Jeśli otworzyłeś ten plik bezpośrednio z dysku (file://), przeglądarka zablokowała dostęp.
+                Musisz uruchomić stronę przez lokalny serwer (np. Live Server w VS Code lub 'python -m http.server').</em>
+            `;
+            console.error(err);
+        });
 
-document.getElementById('tot').innerText = totalQuestions;
+    function parseCSV(csvText) {
+        // Prosty parser CSV obsługujący cudzysłowy
+        const rows = [];
+        let currentRow = [];
+        let currentVal = '';
+        let insideQuote = false;
+        
+        for (let i = 0; i < csvText.length; i++) {
+            const char = csvText[i];
+            const nextChar = csvText[i + 1];
 
-// Tasowanie tablicy
-function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-}
-shuffle(allQuestions);
+            if (char === '"') {
+                if (insideQuote && nextChar === '"') {
+                    currentVal += '"';
+                    i++; // pomiń drugi cudzysłów
+                } else {
+                    insideQuote = !insideQuote;
+                }
+            } else if (char === ',' && !insideQuote) {
+                currentRow.push(currentVal.trim());
+                currentVal = '';
+            } else if ((char === '\r' || char === '\n') && !insideQuote) {
+                if (currentVal || currentRow.length > 0) {
+                    currentRow.push(currentVal.trim());
+                    if (currentRow.length > 1) rows.push(currentRow);
+                }
+                currentRow = [];
+                currentVal = '';
+                // Pomiń \n po \r
+                if (char === '\r' && nextChar === '\n') i++;
+            } else {
+                currentVal += char;
+            }
+        }
+        if (currentRow.length > 0) rows.push(currentRow); // Ostatni wiersz
 
-function loadQuestion() {
-    isAnswered = false;
-    feedbackEl.style.display = 'none';
-    feedbackEl.style.background = '#fff';
-    feedbackEl.style.color = '#333';
-    nextBtn.classList.add('hidden');
-    optionsEl.innerHTML = '';
-
-    if (currentIdx >= totalQuestions) {
-        document.getElementById('quiz').classList.add('hidden');
-        document.getElementById('end').classList.remove('hidden');
-        document.getElementById('fs').innerText = score;
-        document.getElementById('ft').innerText = totalQuestions;
-        return;
+        processData(rows);
     }
 
-    const q = allQuestions[currentIdx];
-    document.getElementById('cur').innerText = currentIdx + 1;
-    questionEl.innerText = q.q;
+    function processData(rows) {
+        // Pomijamy nagłówek (pierwszy wiersz)
+        // Struktura: Pytanie, Poprawna, Opcja1, Opcja2, Opcja3, Źródło
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.length < 5) continue; // Pomiń uszkodzone wiersze
 
-    if (q.o && q.o.length > 0) {
-        let opts = [...q.o];
-        shuffle(opts);
-        opts.forEach(opt => {
+            const question = row[0];
+            const correct = row[1];
+            const options = [row[1], row[2], row[3], row[4]];
+
+            // Mieszanie odpowiedzi
+            const shuffledOptions = options
+                .map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+
+            const correctIndex = shuffledOptions.indexOf(correct);
+
+            quizData.push({
+                question: question,
+                options: shuffledOptions,
+                correctIndex: correctIndex
+            });
+        }
+
+        if (quizData.length > 0) {
+            initQuiz();
+        } else {
+            alert("Plik CSV jest pusty lub ma niepoprawny format.");
+        }
+    }
+
+    function initQuiz() {
+        document.getElementById('loading-msg').style.display = 'none';
+        document.getElementById('quiz-interface').style.display = 'block';
+        document.getElementById('total-num').textContent = quizData.length;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        document.getElementById('next-btn').style.display = 'none';
+        
+        const currentData = quizData[currentQuestionIndex];
+        
+        document.getElementById('current-num').textContent = currentQuestionIndex + 1;
+        document.getElementById('question-text').textContent = currentData.question;
+        
+        // Pasek postępu
+        const percent = (currentQuestionIndex / quizData.length) * 100;
+        document.getElementById('progress').style.width = percent + '%';
+
+        const optionsEl = document.getElementById('options-container');
+        optionsEl.innerHTML = '';
+        
+        currentData.options.forEach((option, index) => {
             const btn = document.createElement('button');
-            btn.innerText = opt;
-            btn.onclick = () => check(opt, btn, q.a);
+            btn.className = 'option-btn';
+            btn.textContent = option;
+            btn.onclick = () => checkAnswer(index, btn);
             optionsEl.appendChild(btn);
         });
-    } else {
-        const btn = document.createElement('button');
-        btn.innerText = "Pokaż odpowiedź";
-        btn.style.textAlign = "center";
-        btn.style.background = "#f39c12";
-        btn.style.color = "#fff";
-        btn.style.fontWeight = "bold";
-        btn.onclick = () => show(q.a);
-        optionsEl.appendChild(btn);
     }
-}
 
-function check(sel, btn, cor) {
-    if (isAnswered) return;
-    isAnswered = true;
-    const s = sel.trim().toLowerCase();
-    const c = cor.trim().toLowerCase();
-    
-    // Proste dopasowanie lub dopasowanie "luźne" (dla pytań, gdzie odpowiedź to "a (tekst)")
-    let ok = (s === c) || (c.includes(s) && s.length > 3);
+    function checkAnswer(selectedIndex, btnElement) {
+        if (isAnswered) return;
+        isAnswered = true;
 
-    if (ok) {
-        btn.classList.add('correct-style');
-        score++;
-        scoreEl.innerText = score;
-        feedbackEl.innerHTML = "<strong>Dobrze!</strong>";
-        feedbackEl.style.background = "#d4edda";
-        feedbackEl.style.color = "#155724";
-    } else {
-        btn.classList.add('wrong');
-        feedbackEl.innerHTML = "<strong>Źle.</strong><br>Prawidłowa odpowiedź: " + cor;
-        feedbackEl.style.background = "#f8d7da";
-        feedbackEl.style.color = "#721c24";
-        // Podświetl poprawną
-        document.querySelectorAll('#os button').forEach(b => {
-            if (c.includes(b.innerText.trim().toLowerCase()) && b.innerText.length > 2) b.classList.add('correct-style');
-        });
+        const correctIndex = quizData[currentQuestionIndex].correctIndex;
+        const allButtons = document.getElementById('options-container').children;
+
+        if (selectedIndex === correctIndex) {
+            btnElement.classList.add('correct');
+            score++;
+            document.getElementById('current-score').textContent = score;
+        } else {
+            btnElement.classList.add('wrong');
+            allButtons[correctIndex].classList.add('correct');
+        }
+
+        for (let btn of allButtons) {
+            btn.disabled = true;
+            btn.style.cursor = 'default';
+        }
+
+        document.getElementById('next-btn').style.display = 'block';
     }
-    feedbackEl.style.display = 'block';
-    nextBtn.classList.remove('hidden');
-}
 
-function show(ans) {
-    if (isAnswered) return;
-    isAnswered = true;
-    feedbackEl.innerHTML = "<strong>Odpowiedź:</strong> " + ans;
-    feedbackEl.style.background = "#fff3cd";
-    feedbackEl.style.color = "#856404";
-    feedbackEl.style.display = 'block';
-    nextBtn.classList.remove('hidden');
-}
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
 
-nextBtn.onclick = () => { currentIdx++; loadQuestion(); };
-
-loadQuestion();
+    function showResults() {
+        document.getElementById('quiz-interface').style.display = 'none';
+        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('total-score').textContent = quizData.length;
+    }
 </script>
+
 </body>
 </html>
