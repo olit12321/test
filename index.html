@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Systemy Operacyjne</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,11 +37,13 @@
             border-radius: 5px;
             margin-bottom: 20px;
             display: none;
+            text-align: left;
         }
         .loading {
             text-align: center;
             font-size: 1.2rem;
-            color: #666;
+            color: #0056b3;
+            font-weight: bold;
         }
         .progress-bar {
             width: 100%;
@@ -58,7 +61,7 @@
         }
         .question-box {
             margin-bottom: 2rem;
-            display: none; /* Hidden until loaded */
+            display: none;
         }
         .question-text {
             font-size: 1.3rem;
@@ -147,7 +150,7 @@
             <div class="progress-fill" id="progress"></div>
         </div>
 
-        <div class="question-box" style="display: block;">
+        <div class="question-box" id="question-box">
             <div class="question-text" id="question-text"></div>
             <div class="options-grid" id="options-container"></div>
         </div>
@@ -170,105 +173,79 @@
     let score = 0;
     let isAnswered = false;
 
-    // Pobieranie pliku CSV
-    fetch('dane.csv')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Nie udało się wczytać pliku dane.csv (Status: ${response.status}). Upewnij się, że plik jest w tym samym folderze.`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            parseCSV(text);
-        })
-        .catch(err => {
-            document.getElementById('loading-msg').style.display = 'none';
-            const errorBox = document.getElementById('error-box');
-            errorBox.style.display = 'block';
-            errorBox.innerHTML = `
-                <strong>Błąd wczytywania:</strong> ${err.message}<br><br>
-                <em>Uwaga: Jeśli otworzyłeś ten plik bezpośrednio z dysku (file://), przeglądarka zablokowała dostęp.
-                Musisz uruchomić stronę przez lokalny serwer (np. Live Server w VS Code lub 'python -m http.server').</em>
-            `;
-            console.error(err);
-        });
-
-    function parseCSV(csvText) {
-        // Prosty parser CSV obsługujący cudzysłowy
-        const rows = [];
-        let currentRow = [];
-        let currentVal = '';
-        let insideQuote = false;
-        
-        for (let i = 0; i < csvText.length; i++) {
-            const char = csvText[i];
-            const nextChar = csvText[i + 1];
-
-            if (char === '"') {
-                if (insideQuote && nextChar === '"') {
-                    currentVal += '"';
-                    i++; // pomiń drugi cudzysłów
+    // Uruchomienie PapaParse po załadowaniu strony
+    window.onload = function() {
+        Papa.parse("dane.csv", {
+            download: true,       // Pobierz plik z URL
+            header: true,         // Pierwszy wiersz to nagłówki
+            skipEmptyLines: true, // Pomiń puste linie
+            complete: function(results) {
+                console.log("Pobrano dane:", results);
+                if (results.data && results.data.length > 0) {
+                    processParsedData(results.data);
                 } else {
-                    insideQuote = !insideQuote;
+                    showError("Plik dane.csv jest pusty lub niepoprawny.");
                 }
-            } else if (char === ',' && !insideQuote) {
-                currentRow.push(currentVal.trim());
-                currentVal = '';
-            } else if ((char === '\r' || char === '\n') && !insideQuote) {
-                if (currentVal || currentRow.length > 0) {
-                    currentRow.push(currentVal.trim());
-                    if (currentRow.length > 1) rows.push(currentRow);
-                }
-                currentRow = [];
-                currentVal = '';
-                // Pomiń \n po \r
-                if (char === '\r' && nextChar === '\n') i++;
-            } else {
-                currentVal += char;
+            },
+            error: function(err, file) {
+                console.error("Błąd PapaParse:", err);
+                showError(`Nie udało się pobrać pliku dane.csv.<br>
+                <strong>Możliwe przyczyny:</strong><br>
+                1. Plik nie nazywa się dokładnie "dane.csv" (wielkość liter ma znaczenie na GitHub!).<br>
+                2. Plik nie znajduje się w głównym folderze repozytorium.<br>
+                Szczegóły błędu: ${err.message}`);
             }
-        }
-        if (currentRow.length > 0) rows.push(currentRow); // Ostatni wiersz
+        });
+    };
 
-        processData(rows);
+    function showError(msg) {
+        document.getElementById('loading-msg').style.display = 'none';
+        const errBox = document.getElementById('error-box');
+        errBox.innerHTML = msg;
+        errBox.style.display = 'block';
     }
 
-    function processData(rows) {
-        // Pomijamy nagłówek (pierwszy wiersz)
-        // Struktura: Pytanie, Poprawna, Opcja1, Opcja2, Opcja3, Źródło
+    function processParsedData(data) {
+        // Mapowanie danych z CSV na strukturę quizu
+        // Oczekujemy kolumn: "Pytanie", "Poprawna odpowiedź", "Inna opcja 1", "Inna opcja 2", "Inna opcja 3"
         
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (row.length < 5) continue; // Pomiń uszkodzone wiersze
+        quizData = data.map(row => {
+            // Sprawdzenie czy wiersz ma pytanie (zabezpieczenie przed pustymi wierszami)
+            if (!row["Pytanie"]) return null;
 
-            const question = row[0];
-            const correct = row[1];
-            const options = [row[1], row[2], row[3], row[4]];
+            const correct = row["Poprawna odpowiedź"];
+            // Tworzenie tablicy wszystkich opcji
+            let options = [
+                correct,
+                row["Inna opcja 1"],
+                row["Inna opcja 2"],
+                row["Inna opcja 3"]
+            ].filter(opt => opt !== undefined && opt !== ""); // Usuń puste opcje jeśli jakieś są
 
             // Mieszanie odpowiedzi
-            const shuffledOptions = options
+            let shuffledOptions = options
                 .map(value => ({ value, sort: Math.random() }))
                 .sort((a, b) => a.sort - b.sort)
                 .map(({ value }) => value);
 
-            const correctIndex = shuffledOptions.indexOf(correct);
-
-            quizData.push({
-                question: question,
+            return {
+                question: row["Pytanie"],
                 options: shuffledOptions,
-                correctIndex: correctIndex
-            });
-        }
+                correctIndex: shuffledOptions.indexOf(correct)
+            };
+        }).filter(item => item !== null); // Usuń ewentualne nulle
 
         if (quizData.length > 0) {
             initQuiz();
         } else {
-            alert("Plik CSV jest pusty lub ma niepoprawny format.");
+            showError("Nie znaleziono poprawnych pytań w pliku. Sprawdź nagłówki kolumn w CSV.");
         }
     }
 
     function initQuiz() {
         document.getElementById('loading-msg').style.display = 'none';
         document.getElementById('quiz-interface').style.display = 'block';
+        document.getElementById('question-box').style.display = 'block';
         document.getElementById('total-num').textContent = quizData.length;
         loadQuestion();
     }
